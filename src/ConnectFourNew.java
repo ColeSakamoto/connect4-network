@@ -7,43 +7,43 @@ import java.net.URL;
 
 public class ConnectFourNew {
 
-	JFrame frame;
-	JPanel panel;
+	private JFrame frame;
+	private JPanel panel;
 	
-	final int rowTiles = BOARDSIZE;
-	final int colTiles = BOARDSIZE;
-	static int[][] grid = new int[1][1];
-	int row, col, rowSelected, colSelected = 0;
-	int pTurn = 0;
-	boolean win = false;
-	JButton[][] button = new JButton[rowTiles][colTiles];
-	JButton clear;
+	private final int rowTiles = BOARDSIZE;
+	private final int colTiles = BOARDSIZE;
+	private static int[][] grid = new int[1][1];
+	private int row, col = 0;
+	private int pTurn = 0;
+	private boolean win = false;
+	private JButton[][] button = new JButton[rowTiles][colTiles];
+	private JButton clear;
 	
-	GridLayout myGrid = new GridLayout(BOARDSIZE, BOARDSIZE);
+	private GridLayout myGrid = new GridLayout(BOARDSIZE, BOARDSIZE);
 
-	ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-	URL resource = classLoader.getResource("images/BlackDot.jpg");
-	URL resource1 = classLoader.getResource("images/REDload.gif");
-	URL resource2 = classLoader.getResource("images/BLUEload.gif");
-	URL resource3 = classLoader.getResource("images/BLUEWin.gif");
-	URL resource4 = classLoader.getResource("images/REDWin.gif");
-	URL resource5 = classLoader.getResource("images/Preloader.gif");
-	final ImageIcon blnk = new ImageIcon(resource);
-	final ImageIcon p1 = new ImageIcon(resource1);
-	final ImageIcon p2 = new ImageIcon(resource2);
-	final ImageIcon bWin = new ImageIcon(resource3);
-	final ImageIcon rWin = new ImageIcon(resource4);
-	final ImageIcon status = new ImageIcon(resource5);
-	static int BOARDSIZE;
-	static int CONTOWIN;
+	private ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+	private URL resource = classLoader.getResource("images/BlackDot.jpg");
+	private URL resource1 = classLoader.getResource("images/REDload.gif");
+	private URL resource2 = classLoader.getResource("images/BLUEload.gif");
+	private URL resource3 = classLoader.getResource("images/BLUEWin.gif");
+	private URL resource4 = classLoader.getResource("images/REDWin.gif");
+	private URL resource5 = classLoader.getResource("images/Preloader.gif");
+	private final ImageIcon blnk = new ImageIcon(resource);
+	private final ImageIcon p1 = new ImageIcon(resource1);
+	private final ImageIcon p2 = new ImageIcon(resource2);
+	private final ImageIcon bWin = new ImageIcon(resource3);
+	private final ImageIcon rWin = new ImageIcon(resource4);
+	private final ImageIcon status = new ImageIcon(resource5);
+	private static int BOARDSIZE;
+	private static int CONTOWIN;
 
 	//Controls allowable win orientations
-	boolean hChk = true; //Horizontal check
-	boolean vChk = true; //Vertical check
-	boolean dPChk = true; //Diagonal positive check
-	boolean dNChk = true; //Diagonal negative check 
+	private boolean hChk = true; //Horizontal check
+	private boolean vChk = true; //Vertical check
+	private boolean dPChk = true; //Diagonal positive check
+	private boolean dNChk = true; //Diagonal negative check 
 
-	JButton gameStatus; // <--for status button
+	private JButton gameStatus; // <--for status button
 
 	public ConnectFourNew() {
 		frame = new JFrame("Welcome to Connect Four"); //Window title
@@ -108,7 +108,7 @@ public class ConnectFourNew {
 				.println("<>---------------------------Welcome To Connect 4 v4.6------------------------------<>");
 	}
 
-	class buttonListener implements ActionListener {
+	private class buttonListener implements ActionListener {
 		public void actionPerformed(ActionEvent event) {
 			for (row = BOARDSIZE - 2; row >= 0; row--) {
 				for (col = BOARDSIZE - 1; col >= 0; col--) {
@@ -205,7 +205,7 @@ public class ConnectFourNew {
 	}
 	
 	//Resets the game board
-	class clearListener implements ActionListener {
+	private class clearListener implements ActionListener {
 		public void actionPerformed(ActionEvent event) {
 			for (int x = BOARDSIZE - 2; x >= 0; x--) {
 				for (int y = BOARDSIZE - 2; y >= 0; y--) {
@@ -239,7 +239,7 @@ public class ConnectFourNew {
 		}
 	}
 
-	public boolean checkWin() {
+	private boolean checkWin() {
 
 		///Find "open space" and remove background color
 		for (row = 0; row < BOARDSIZE - 1; row++) {
@@ -369,82 +369,7 @@ public class ConnectFourNew {
 		///////////////										
 		return this.win;
 	}
+	
+	
 
-	public static void main(String[] args) {
-
-		if (args.length == 0) {
-			System.out
-					.println("<>---------------------MISSING ARGUMENTS-----------------------<>");
-			System.out.println("No arguments");
-			System.out.println("Ex. java -jar Connect4.jar 6 4 is OK");
-			System.out.println("Ex. java -jar Connect4.jar <BoardSize> <ConnetionsToWin>");
-			System.out
-					.println("<>-------------------------------------------------------------<>");
-		} else {
-			System.setProperty("java.util.Arrays.useLegacyMergeSort", "true"); // Fixes
-																				// "Comparison method violates its general contract!"
-			try {
-				final int boardSize = Integer.parseInt(args[0]); // boardSize
-				final int conToWin = Integer.parseInt(args[1]); // Connections needed to win
-																
-
-				if (boardSize < conToWin || conToWin <= 0) {
-					System.out
-							.println("<>---------------------INVALID INPUT-----------------------<>");
-					System.out.println("Game is not winnable!!!");
-					System.out.println("");
-					System.out.println("Note: BoardSize cannot be zero and connections needed to win must be less than or equal to the BoardSize");
-					System.out
-							.println("Ex. BoardSize = 8, ConnectionToWin = 6, is OK");
-					System.out
-							.println("Ex. BoardSize = 8, ConnectionToWin = 9, is INVALID");
-					System.out.println("Ex. BoardSize = 8, ConnectionToWin = 0, is INVALID");
-					System.out
-							.println("<>---------------------------------------------------------<>");
-					return;
-				}
-				
-				if (boardSize > 20 || boardSize <= 2) {
-					System.out
-					.println("<>---------------------INVALID INPUT-----------------------<>");
-					System.out.println("BoardSize must be less than or equal to 20 and greater than 2");
-					System.out.println("");
-					System.out.println("2 <= BoardSize <= 20");
-					
-					System.out.println("<>---------------------------------------------------------<>");
-					return;
-				}
-
-				System.out.println("BoardSize: "+ boardSize);
-				System.out.println("ConnectToWinSize: "+ conToWin);
-				int offset = 1; // Offset grid starts at (0,0) instead of (1,1)
-				BOARDSIZE = boardSize + offset;
-				CONTOWIN = conToWin;
-				grid = new int[BOARDSIZE][BOARDSIZE];
-				javax.swing.SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						JFrame.setDefaultLookAndFeelDecorated(true);
-						new ConnectFourNew();
-					}
-				});
-			} catch (ArrayIndexOutOfBoundsException exception) {
-				System.out.println("<>---------------------MISSING ARGUMENTS-----------------------<>");
-				System.out.println("These arguments will cause a problem...");
-				System.out.println("");
-				System.out.println("Ex. java -jar Connect4.jar 6 4 is OK");
-				System.out.println("Ex. java -jar Connect4.jar 6   is INVALID");
-				System.out.println("<>-------------------------------------------------------------<>");
-			} catch (NumberFormatException e) {
-				System.out.println("<>---------------------INVALID INPUT-----------------------<>");
-				System.out.println("These arguments will cause a problem...");
-				System.out.println("");
-				System.out.println("Arguments must be a integer");
-				System.out.println("Ex. java -jar Connect4.jar 6 4 is OK");
-				System.out.println("Ex. java -jar Connect4.jar 6 e is INVALID");
-				System.out.println("Ex. java -jar Connect4.jar 6 3.2 is INVALID");
-				System.out.println("<>---------------------------------------------------------<>");
-
-			}
-		}
-	}
 }
