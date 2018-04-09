@@ -7,444 +7,279 @@ import java.net.URL;
 
 public class ConnectFourNew {
 
-	JFrame frame;
-	JPanel panel;
-	
-	final int rowTiles = BOARDSIZE;
-	final int colTiles = BOARDSIZE;
-	static int[][] grid = new int[1][1];
-	int row, col, rowSelected, colSelected = 0;
-	int pTurn = 0;
-	boolean win = false;
-	JButton[][] button = new JButton[rowTiles][colTiles];
-	JButton clear;
-	
-	GridLayout myGrid = new GridLayout(BOARDSIZE, BOARDSIZE);
+	// Static fields: controls allowable win orientations
+	private static boolean hChk = true; // Horizontal check
+	private static boolean vChk = true; // Vertical check
+	private static boolean dPChk = true; // Diagonal positive check
+	private static boolean dNChk = true; // Diagonal negative check
 
-	ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-	URL resource = classLoader.getResource("images/BlackDot.jpg");
-	URL resource1 = classLoader.getResource("images/REDload.gif");
-	URL resource2 = classLoader.getResource("images/BLUEload.gif");
-	URL resource3 = classLoader.getResource("images/BLUEWin.gif");
-	URL resource4 = classLoader.getResource("images/REDWin.gif");
-	URL resource5 = classLoader.getResource("images/Preloader.gif");
-	final ImageIcon blnk = new ImageIcon(resource);
-	final ImageIcon p1 = new ImageIcon(resource1);
-	final ImageIcon p2 = new ImageIcon(resource2);
-	final ImageIcon bWin = new ImageIcon(resource3);
-	final ImageIcon rWin = new ImageIcon(resource4);
-	final ImageIcon status = new ImageIcon(resource5);
-	static int BOARDSIZE;
-	static int CONTOWIN;
+	// Data
+	private int[][] grid;
+	private int pTurn;
+	private int boardSize, conToWin;
+	private boolean win = false;
 
-	//Controls allowable win orientations
-	boolean hChk = true; //Horizontal check
-	boolean vChk = true; //Vertical check
-	boolean dPChk = true; //Diagonal positive check
-	boolean dNChk = true; //Diagonal negative check 
+	// UI items
+	private JFrame frame;
+	private JPanel panel;
+	private ImageIcon blnk, p1, p2;
+	private ImageIcon bWin, rWin, status;
+	private JButton[][] button;
+	private JButton clear;
+	private JButton gameStatus; // <--for status button
 
-	JButton gameStatus; // <--for status button
+	public ConnectFourNew(int boardSize, int conToWin) {
 
-	public ConnectFourNew() {
-		frame = new JFrame("Welcome to Connect Four"); //Window title
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		panel = new JPanel();
-		panel.setLayout(myGrid);
-		panel.setBackground(new Color(112,133,146)); //panel color
+		this.boardSize = boardSize;
+		this.conToWin = conToWin;
+		this.grid = new int[boardSize][boardSize];
 
-		gameStatus = new JButton("");
+		loadResources();
+		setUpPanel();
 
-		clear = new JButton("Reset");   //clear button name
-		clear.addActionListener(new clearListener());
-		
-		panel.setPreferredSize(new Dimension(1000, 800));
+		this.frame = new JFrame("Welcome to Connect Four"); // Window title
+		this.frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.frame.setContentPane(panel);
+		this.frame.pack();
+		this.frame.setVisible(true);
 
-		// -1 = restricted spot
-		// 0 = empty spot
-		// 1 = for player1 RED
-		// 2 = for player2 BLUE
-
-		int offset = 3; // To disable all rows except for the very bottom on
-						// initial start
-		int offsetCol = 1; // to make the column size=row size
-		for (int x = BOARDSIZE - offset; x >= 0; x--) {
-			for (int y = BOARDSIZE - offsetCol; y >= 0; y--) {
-				grid[x][y] = -1;
-				System.out.println("Setting up restricted spot at " + x + " "
-						+ y);
-			}
-		}
-		//Add buttons for first play through
-		for (row = 0; row < BOARDSIZE - 1; row++) {
-			for (col = 0; col < BOARDSIZE - 1; col++) {
-				System.out.println("Setting up button at " + row + " " + col);
-				button[row][col] = new JButton(blnk);
-				button[row][col].addActionListener(new buttonListener());
-				panel.add(button[row][col]);
-			}
-		}
-		///Find "open space" and set color
-		for (row = 0; row < BOARDSIZE - 1; row++) {
-			for (col = 0; col < BOARDSIZE - 1; col++) {
-				if (grid[row][col] == 0)
-				{
-					button[row][col].setBackground(Color.cyan);
-					button[row][col].setOpaque(true);
-				}
-			}
-		}
-		//////
-		frame.setContentPane(panel);
-		frame.pack();
-		frame.setVisible(true);
-		panel.add(gameStatus); // <---for game status
-		gameStatus.setIcon(status); // <---for game status
-		panel.add(clear); //add clear button
 		System.out.println("HorizontalCheckEnabled?: " + hChk);
 		System.out.println("VerticalCheckEnabled?: " + vChk);
 		System.out.println("DiagonalPositiveCheckEnabled?: " + dPChk);
 		System.out.println("DiagonalNegativeCheckEnabled?: " + dNChk);
-		System.out
-				.println("<>---------------------------Welcome To Connect 4 v4.6------------------------------<>");
+		System.out.println("<>---------------------------Welcome To Connect 4 v4.6------------------------------<>");
 	}
 
-	class buttonListener implements ActionListener {
-		public void actionPerformed(ActionEvent event) {
-			for (row = BOARDSIZE - 2; row >= 0; row--) {
-				for (col = BOARDSIZE - 1; col >= 0; col--) {
-					if (button[row][col] == event.getSource()) {
-						if (pTurn % 2 == 0 && grid[row][col] == 0) {
-							button[row][col].setIcon(p1);
-							grid[row][col] = 1;
-						
-							System.out.println("Selected Row: " + row
-									+ " Col: " + col );
-							try {
-								grid[row - 1][col] = 0; // set spot above
-														// selected to open
-							} catch (ArrayIndexOutOfBoundsException e) {
-								System.out.println("Maxed height reached");
-							}
-																					
-							///Find "open space" and set color
-							for (row = 0; row < BOARDSIZE - 1; row++) {
-								for (col = 0; col < BOARDSIZE - 1; col++) {
-									if (grid[row][col] == 0)
-									{
-										button[row][col].setBackground(Color.cyan);
-										button[row][col].setOpaque(true);
-									}
-								}
-							}
-							//////
-														
-							if (checkWin()) {
-								System.out.println("Red win"); // player1
-								gameStatus.setIcon(rWin);
-								for (int x = BOARDSIZE - 1; x >= 0; x--) {
-									for (int y = BOARDSIZE - 1; y >= 0; y--) {
-										grid[x][y] = -1;
-									}
-								}
-							}
-							pTurn = pTurn + 1;
-							System.out.println("");
-							break;
-						}
-																	
-						if (pTurn % 2 == 1 && grid[row][col] == 0) {
-							button[row][col].setIcon(p2);
-							grid[row][col] = 2;
-						
-							System.out.println("Selected Row: " + row
-									+ " Col: " + col );
-							try {
-								grid[row - 1][col] = 0; // set spot above
-														// selected to open
-							} catch (ArrayIndexOutOfBoundsException e) {
-								System.out.println("Maxed height reached");
-							}
-							
-						///////For setting open spaces background color
-							for (row = 0; row < BOARDSIZE - 1; row++) {
-								for (col = 0; col < BOARDSIZE - 1; col++) {
-									if (grid[row][col] == 0)
-									{
-										button[row][col].setBackground(Color.cyan);
-										button[row][col].setOpaque(true);
-									}
-								}
-							}
-							//////
-																												
-							if (checkWin()) {
-								System.out.println("Blue win"); // player2
-								gameStatus.setIcon(bWin);
-								for (int x = BOARDSIZE - 1; x >= 0; x--) {
-									for (int y = BOARDSIZE - 1; y >= 0; y--) {
-										grid[x][y] = -1;
-									}
-								}
-							}
-													
-							pTurn = pTurn + 1; //change to next player
-							System.out.println("");
-							break;
-						} 
-												
-						else {
-							System.out.println("");
-							//For debugging purposes print selected location
-							System.out.println("Selected Row: " + row
-									+ " Col: " + col );
-						}
-					}
+	private void setUpPanel() {
+		this.button = new JButton[boardSize][boardSize];
+		this.panel = new JPanel();
+		this.panel.setPreferredSize(new Dimension(1000, 800));
+		this.panel.setLayout(new GridLayout(boardSize, boardSize));
+		this.panel.setBackground(new Color(112, 133, 146)); // panel color
+		this.gameStatus = new JButton("");
+		this.gameStatus.setIcon(status); // <---for game status
+		this.clear = new JButton("Reset"); // clear button name
+		this.clear.addActionListener(new clearListener());
+
+		initGrid();
+
+		this.panel.add(gameStatus); // <---for game status
+		this.panel.add(clear); // add clear button
+	}
+
+	private void loadResources() {
+		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+		blnk = new ImageIcon(classLoader.getResource("images/BlackDot.jpg"));
+		p1 = new ImageIcon(classLoader.getResource("images/REDload.gif"));
+		p2 = new ImageIcon(classLoader.getResource("images/BLUEload.gif"));
+		bWin = new ImageIcon(classLoader.getResource("images/BLUEWin.gif"));
+		rWin = new ImageIcon(classLoader.getResource("images/REDWin.gif"));
+		status = new ImageIcon(classLoader.getResource("images/Preloader.gif"));
+	}
+
+	private void initGrid() {
+		// -1 = restricted spot
+		// 0 = empty spot
+		// 1 = for player1 RED
+		// 2 = for player2 BLUE
+		int offset = 3; // To disable all rows except for the very bottom on initial start
+		int offsetCol = 1; // to make the column size=row size
+		for (int x = boardSize - offset; x >= 0; x--) {
+			for (int y = boardSize - offsetCol; y >= 0; y--) {
+				grid[x][y] = -1;
+				System.out.println("Setting up restricted spot at " + x + " " + y);
+			}
+		}
+		// Add buttons for first play through
+		for (int row = 0; row < boardSize - 1; row++) {
+			for (int col = 0; col < boardSize - 1; col++) {
+				System.out.println("Setting up button at " + row + " " + col);
+				JButton button = new CoordinateButton(row, col, blnk);
+				button.addActionListener(new buttonListener());
+				if (grid[row][col] == 0) {
+					button.setBackground(Color.cyan);
+					button.setOpaque(true);
 				}
+				panel.add(button);
+				this.button[row][col] = button;
 			}
 		}
 	}
-	
-	//Resets the game board
-	class clearListener implements ActionListener {
+
+	private static boolean checkHorizontal(int[][] grid, int row, int col, int conToWin, int boardSize) {
+		int matchsFound = 1, i = 1;
+		while (i < conToWin && col - i >= 0) {
+			if (grid[row][col] != grid[row][col - i])
+				break;
+			matchsFound++;
+			i++;
+		}
+		i = 1;
+		while (i < conToWin && col + i < boardSize - 1) {
+			if (grid[row][col] != grid[row][col + i])
+				break;
+			matchsFound++;
+			i++;
+		}
+		return matchsFound < conToWin ? false : true;
+	}
+
+	private static boolean checkVertical(int[][] grid, int row, int col, int conToWin, int boardSize) {
+		int matchsFound = 1, i = 1;
+		while (i < conToWin && row - i >= 0) {
+			if (grid[row][col] != grid[row - i][col])
+				break;
+			matchsFound++;
+			i++;
+		}
+		i = 1;
+		while (i < conToWin && row + i < boardSize - 1) {
+			if (grid[row][col] != grid[row + i][col])
+				break;
+			matchsFound++;
+			i++;
+		}
+		return matchsFound < conToWin ? false : true;
+	}
+
+	private static boolean checkPositiveDiagonal(int[][] grid, int row, int col, int conToWin, int boardSize) {
+		int matchsFound = 1, i = 1;
+		while (i < conToWin && row - i >= 0 && col + i < boardSize - 1) {
+			if (grid[row][col] != grid[row - i][col + i])
+				break;
+			matchsFound++;
+			i++;
+		}
+		i = 1;
+		while (i < conToWin && row + i < boardSize - 1 && col - i >= 0) {
+			if (grid[row][col] != grid[row + i][col - i])
+				break;
+			matchsFound++;
+			i++;
+		}
+		return matchsFound < conToWin ? false : true;
+	}
+
+	private static boolean checkNegativeDiagonal(int[][] grid, int row, int col, int conToWin, int boardSize) {
+		int matchsFound = 1, i = 1;
+		while (i < conToWin && row - i >= 0 && col - i >= 0) {
+			if (grid[row][col] != grid[row - i][col - i])
+				break;
+			matchsFound++;
+			i++;
+		}
+		i = 1;
+		while (i < conToWin && row + i < boardSize - 1 && col + i < boardSize - 1) {
+			if (grid[row][col] != grid[row + i][col + i])
+				break;
+			matchsFound++;
+			i++;
+		}
+		return matchsFound < conToWin ? false : true;
+	}
+
+	private boolean checkWin(CoordinateButton b) {
+		int row = b.getRow();
+		int col = b.getCol();
+
+		// Horizontal win check
+		if (hChk && checkHorizontal(grid, row, col, conToWin, boardSize))
+			win = true;
+
+		// Vertical win check
+		if (vChk && checkVertical(grid, row, col, conToWin, boardSize))
+			win = true;
+
+		// Diagonal negative check "\"
+		if (dNChk && checkNegativeDiagonal(grid, row, col, conToWin, boardSize))
+			win = true;
+
+		// Diagonal positive slope check "/"
+		if (dPChk && checkPositiveDiagonal(grid, row, col, conToWin, boardSize))
+			win = true;
+
+		return this.win;
+	}
+
+	@SuppressWarnings("serial")
+	private static class CoordinateButton extends JButton {
+		int row, col;
+
+		public CoordinateButton(int row, int col, Icon ic) {
+			super(ic);
+			this.row = row;
+			this.col = col;
+		}
+
+		public int getRow() {
+			return row;
+		}
+
+		public int getCol() {
+			return col;
+		}
+	}
+
+	private class buttonListener implements ActionListener {
 		public void actionPerformed(ActionEvent event) {
-			for (int x = BOARDSIZE - 2; x >= 0; x--) {
-				for (int y = BOARDSIZE - 2; y >= 0; y--) {
+			CoordinateButton button = (CoordinateButton) event.getSource();
+			final int row = button.getRow();
+			final int col = button.getCol();
+
+			// For debugging purposes print selected location
+			System.out.println("Selected Row: " + row + " Col: " + col);
+
+			if (grid[row][col] != 0)
+				return;
+
+			button.setBackground(null);
+			button.setIcon(pTurn == 0 ? p1 : p2);
+			grid[row][col] = pTurn == 0 ? 1 : 2;
+			if (row != 0) {
+				grid[row - 1][col] = 0; // set spot above selected to open
+				ConnectFourNew.this.button[row - 1][col].setBackground(Color.CYAN);
+			} else
+				System.out.println("Maxed height reached");
+
+			if (checkWin(button)) {
+				System.out.println(pTurn == 0 ? "Red win" : "Blue win");
+				gameStatus.setIcon(pTurn == 0 ? rWin : bWin);
+				for (int i = boardSize - 2; i >= 0; i--) {
+					for (int j = boardSize - 2; j >= 0; j--) {
+						ConnectFourNew.this.button[i][j].setBackground(null);
+						if (grid[i][j] == 0)
+							ConnectFourNew.this.button[i][j].setBackground(Color.black);
+						grid[i][j] = -1;
+					}
+				}		 
+			}
+			pTurn = (pTurn + 1) % 2;
+			System.out.println("");
+		}
+	}
+
+	// Resets the game board
+	private class clearListener implements ActionListener {
+		public void actionPerformed(ActionEvent event) {
+			for (int x = 0; x < boardSize - 1; x++) {
+				for (int y = 0; y < boardSize - 1; y++) {
 					System.out.println("Clearing spot: " + "x=" + x + " y=" + y);
 					grid[x][y] = -1;
 					button[x][y].setIcon(blnk);
-
+					button[x][y].setBackground(new JButton().getBackground());
+				}
+				if (x == boardSize - 2) {
+					for (int y = 0; y < boardSize - 1; y++) {
+						grid[x][y] = 0;
+						button[x][y].setBackground(Color.cyan);
+					}
 				}
 			}
-			for (int y = colTiles - 1; y >= 0; y--) {
-				grid[BOARDSIZE - 2][y] = 0;
-			}
-
 			win = false;
 			gameStatus.setIcon(status);
-			
-			
-			///////For setting open spaces background color
-			for (row = 0; row < BOARDSIZE - 1; row++) {
-				for (col = 0; col < BOARDSIZE - 1; col++) {
-					
-						button[row][col].setBackground(null);
-						if (grid[row][col] == 0) {
-							button[row][col].setBackground(Color.cyan);
-						}											
-				}
-			}
-			///////////////
 			System.out.println("Done");
 			System.out.println("");
 		}
 	}
 
-	public boolean checkWin() {
-
-		///Find "open space" and remove background color
-		for (row = 0; row < BOARDSIZE - 1; row++) {
-			for (col = 0; col < BOARDSIZE - 1; col++) {
-				if (grid[row][col] == 1 || grid[row][col] == 2)
-				{
-					button[row][col].setBackground(null);
-					
-				}
-			}
-		}
-		//////
-		
-		int matchsFound = 1;
-		// Horizontal win check
-		if (hChk == true) {
-			
-			for (int x = 0; x < BOARDSIZE; x++) {
-				for (int y = 0; y < BOARDSIZE - CONTOWIN + 1; y++) { // added +1 for offset
-
-					if (grid[x][y] != 0 && grid[x][y] != -1) {
-						for (int c = 1; c < CONTOWIN; c++) {
-							System.out.println("Horizontal check: "+"x:"+x+" "+"y:"+y+" "+"c:"+c); //Debugging
-							if (grid[x][y] == grid[x][y + c]) {
-								matchsFound++;
-							}
-						}
-
-					}
-					if (matchsFound >= CONTOWIN) {
-						win = true;
-
-					}
-					matchsFound = 1;
-				}
-			}
-		}
-		// Vertical win check
-		if (vChk == true) {
-			
-			for (int x = 0; x < BOARDSIZE - CONTOWIN; x++) {
-				for (int y = 0; y < BOARDSIZE; y++) {
-
-					if (grid[x][y] != 0 && grid[x][y] != -1) {
-						
-						for (int c = 1; c < CONTOWIN; c++) {
-							System.out.println("Vertical check: "+"x:"+x+" "+"y:"+y+" "+"c:"+c); //Debugging
-							if (grid[x][y] == grid[x + c][y]) {
-								matchsFound++;
-							}
-						}
-					}
-
-					if (matchsFound >= CONTOWIN) {
-						win = true;
-
-					}
-					matchsFound = 1;
-
-				}
-			}
-		}
-		// Diagonal negative check "\" 
-		if (dNChk == true) {
-			
-			for (int x = 0; x < BOARDSIZE - CONTOWIN; x++) {
-				for (int y = 0; y < BOARDSIZE - CONTOWIN; y++) { 
-																	
-					if (grid[x][y] != 0 && grid[x][y] != -1) {
-						
-						for (int c = 1; c < CONTOWIN; c++) {
-							if (grid[x][y] == grid[x + c][y + c]) {
-								System.out.println("Diagonal positive check: "+"x:"+x+" "+"y:"+y+" "+"c:"+c); //Debugging
-								matchsFound++;
-							}
-						}
-					}
-					if (matchsFound >= CONTOWIN) {
-						win = true;
-
-					}
-					matchsFound = 1;
-				}
-			}
-		}
-		// Diagonal positive slope check "/"
-		if (dPChk == true) {
-			if (this.col != 0) {
-				
-				for (int x = 0; x < BOARDSIZE; x++) {
-					for (int y = 0; y < BOARDSIZE - CONTOWIN; y++) {
-						if ((grid[x][y] != 0) && (grid[x][y] != -1) ) {
-							for (int c = 1; c < CONTOWIN; c++) {
-								
-								
-								if ((x-c >= 0)&&(y+c <= BOARDSIZE+2)){ //Boundary security  +2 for offset
-									System.out.println("Diagonal negative check: "+"x:"+x+" "+"y:"+y+" "+"c:"+c); //Debugging
-									if (grid[x][y] == grid[(x - c)][(y + c)] ) {
-									matchsFound++;
-									}
-								}
-							}
-							System.out.println("");
-						}
-						if (matchsFound >= CONTOWIN) {
-							this.win = true;
-							matchsFound = 0;
-						}
-						matchsFound = 1;
-					}
-				}
-			}
-		}
-		
-		
-		///////For setting open spaces background color
-		if(this.win==true)
-		for (row = 0; row < BOARDSIZE - 1; row++) {
-			for (col = 0; col < BOARDSIZE - 1; col++) {
-				
-					button[row][col].setBackground(null);
-					if (grid[row][col] == 0) {
-						button[row][col].setBackground(Color.black);
-					}									
-			}
-		}
-		///////////////										
-		return this.win;
-	}
-
-	public static void main(String[] args) {
-
-		if (args.length == 0) {
-			System.out
-					.println("<>---------------------MISSING ARGUMENTS-----------------------<>");
-			System.out.println("No arguments");
-			System.out.println("Ex. java -jar Connect4.jar 6 4 is OK");
-			System.out.println("Ex. java -jar Connect4.jar <BoardSize> <ConnetionsToWin>");
-			System.out
-					.println("<>-------------------------------------------------------------<>");
-		} else {
-			System.setProperty("java.util.Arrays.useLegacyMergeSort", "true"); // Fixes
-																				// "Comparison method violates its general contract!"
-			try {
-				final int boardSize = Integer.parseInt(args[0]); // boardSize
-				final int conToWin = Integer.parseInt(args[1]); // Connections needed to win
-																
-
-				if (boardSize < conToWin || conToWin <= 0) {
-					System.out
-							.println("<>---------------------INVALID INPUT-----------------------<>");
-					System.out.println("Game is not winnable!!!");
-					System.out.println("");
-					System.out.println("Note: BoardSize cannot be zero and connections needed to win must be less than or equal to the BoardSize");
-					System.out
-							.println("Ex. BoardSize = 8, ConnectionToWin = 6, is OK");
-					System.out
-							.println("Ex. BoardSize = 8, ConnectionToWin = 9, is INVALID");
-					System.out.println("Ex. BoardSize = 8, ConnectionToWin = 0, is INVALID");
-					System.out
-							.println("<>---------------------------------------------------------<>");
-					return;
-				}
-				
-				if (boardSize > 20 || boardSize <= 2) {
-					System.out
-					.println("<>---------------------INVALID INPUT-----------------------<>");
-					System.out.println("BoardSize must be less than or equal to 20 and greater than 2");
-					System.out.println("");
-					System.out.println("2 <= BoardSize <= 20");
-					
-					System.out.println("<>---------------------------------------------------------<>");
-					return;
-				}
-
-				System.out.println("BoardSize: "+ boardSize);
-				System.out.println("ConnectToWinSize: "+ conToWin);
-				int offset = 1; // Offset grid starts at (0,0) instead of (1,1)
-				BOARDSIZE = boardSize + offset;
-				CONTOWIN = conToWin;
-				grid = new int[BOARDSIZE][BOARDSIZE];
-				javax.swing.SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						JFrame.setDefaultLookAndFeelDecorated(true);
-						new ConnectFourNew();
-					}
-				});
-			} catch (ArrayIndexOutOfBoundsException exception) {
-				System.out.println("<>---------------------MISSING ARGUMENTS-----------------------<>");
-				System.out.println("These arguments will cause a problem...");
-				System.out.println("");
-				System.out.println("Ex. java -jar Connect4.jar 6 4 is OK");
-				System.out.println("Ex. java -jar Connect4.jar 6   is INVALID");
-				System.out.println("<>-------------------------------------------------------------<>");
-			} catch (NumberFormatException e) {
-				System.out.println("<>---------------------INVALID INPUT-----------------------<>");
-				System.out.println("These arguments will cause a problem...");
-				System.out.println("");
-				System.out.println("Arguments must be a integer");
-				System.out.println("Ex. java -jar Connect4.jar 6 4 is OK");
-				System.out.println("Ex. java -jar Connect4.jar 6 e is INVALID");
-				System.out.println("Ex. java -jar Connect4.jar 6 3.2 is INVALID");
-				System.out.println("<>---------------------------------------------------------<>");
-
-			}
-		}
-	}
 }
