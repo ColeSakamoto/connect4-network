@@ -7,18 +7,17 @@ import java.net.URL;
 
 public class ConnectFourNew {
 
+	// Static fields: controls allowable win orientations
+	private static boolean hChk = true; // Horizontal check
+	private static boolean vChk = true; // Vertical check
+	private static boolean dPChk = true; // Diagonal positive check
+	private static boolean dNChk = true; // Diagonal negative check
+
 	// Data
 	private int[][] grid;
-	//private int row, col, 
 	private int pTurn;
 	private int boardSize, conToWin;
 	private boolean win = false;
-
-	// Controls allowable win orientations
-	private boolean hChk = true; // Horizontal check
-	private boolean vChk = true; // Vertical check
-	private boolean dPChk = true; // Diagonal positive check
-	private boolean dNChk = true; // Diagonal negative check
 
 	// UI items
 	private JFrame frame;
@@ -107,6 +106,102 @@ public class ConnectFourNew {
 		}
 	}
 
+	private static boolean checkHorizontal(int[][] grid, int row, int col, int conToWin, int boardSize) {
+		int matchsFound = 1, i = 1;
+		while (i < conToWin && col - i >= 0) {
+			if (grid[row][col] != grid[row][col - i])
+				break;
+			matchsFound++;
+			i++;
+		}
+		i = 1;
+		while (i < conToWin && col + i < boardSize - 1) {
+			if (grid[row][col] != grid[row][col + i])
+				break;
+			matchsFound++;
+			i++;
+		}
+		return matchsFound < conToWin ? false : true;
+	}
+
+	private static boolean checkVertical(int[][] grid, int row, int col, int conToWin, int boardSize) {
+		int matchsFound = 1, i = 1;
+		while (i < conToWin && row - i >= 0) {
+			if (grid[row][col] != grid[row - i][col])
+				break;
+			matchsFound++;
+			i++;
+		}
+		i = 1;
+		while (i < conToWin && row + i < boardSize - 1) {
+			if (grid[row][col] != grid[row + i][col])
+				break;
+			matchsFound++;
+			i++;
+		}
+		return matchsFound < conToWin ? false : true;
+	}
+
+	private static boolean checkPositiveDiagonal(int[][] grid, int row, int col, int conToWin, int boardSize) {
+		int matchsFound = 1, i = 1;
+		while (i < conToWin && row - i >= 0 && col + i < boardSize - 1) {
+			if (grid[row][col] != grid[row - i][col + i])
+				break;
+			matchsFound++;
+			i++;
+		}
+		i = 1;
+		while (i < conToWin && row + i < boardSize - 1 && col - i >= 0) {
+			if (grid[row][col] != grid[row + i][col - i])
+				break;
+			matchsFound++;
+			i++;
+		}
+		return matchsFound < conToWin ? false : true;
+	}
+
+	private static boolean checkNegativeDiagonal(int[][] grid, int row, int col, int conToWin, int boardSize) {
+		int matchsFound = 1, i = 1;
+		while (i < conToWin && row - i >= 0 && col - i >= 0) {
+			if (grid[row][col] != grid[row - i][col - i])
+				break;
+			matchsFound++;
+			i++;
+		}
+		i = 1;
+		while (i < conToWin && row + i < boardSize - 1 && col + i < boardSize - 1) {
+			if (grid[row][col] != grid[row + i][col + i])
+				break;
+			matchsFound++;
+			i++;
+		}
+		return matchsFound < conToWin ? false : true;
+	}
+
+	private boolean checkWin(CoordinateButton b) {
+		int row = b.getRow();
+		int col = b.getCol();
+
+		// Horizontal win check
+		if (hChk && checkHorizontal(grid, row, col, conToWin, boardSize))
+			win = true;
+
+		// Vertical win check
+		if (vChk && checkVertical(grid, row, col, conToWin, boardSize))
+			win = true;
+
+		// Diagonal negative check "\"
+		if (dNChk && checkNegativeDiagonal(grid, row, col, conToWin, boardSize))
+			win = true;
+
+		// Diagonal positive slope check "/"
+		if (dPChk && checkPositiveDiagonal(grid, row, col, conToWin, boardSize))
+			win = true;
+
+		return this.win;
+	}
+
+	@SuppressWarnings("serial")
 	private static class CoordinateButton extends JButton {
 		int row, col;
 
@@ -126,205 +221,65 @@ public class ConnectFourNew {
 	}
 
 	private class buttonListener implements ActionListener {
-
 		public void actionPerformed(ActionEvent event) {
-			CoordinateButton button = (CoordinateButton)event.getSource();
+			CoordinateButton button = (CoordinateButton) event.getSource();
 			final int row = button.getRow();
 			final int col = button.getCol();
-			
-			if (grid[row][col] == 0) {
-				button.setIcon(pTurn % 2 == 0 ? p1 : p2);
-				grid[row][col] = pTurn % 2 == 0 ? 1 : 2;
 
-				System.out.println("Selected Row: " + row + " Col: " + col);
-				
-				if (row != 0) {
-					grid[row - 1][col] = 0; // set spot above selected to open	
-					ConnectFourNew.this.button[row - 1][col].setBackground(Color.CYAN);;
-				}
-				else
-					System.out.println("Maxed height reached");
+			// For debugging purposes print selected location
+			System.out.println("Selected Row: " + row + " Col: " + col);
 
-				if (checkWin()) {
-					System.out.println("Red win"); // player1
-					gameStatus.setIcon(rWin);
-					for (int x = boardSize - 1; x >= 0; x--) {
-						for (int y = boardSize - 1; y >= 0; y--) {
-							grid[x][y] = -1;
-						}
+			if (grid[row][col] != 0)
+				return;
+
+			button.setBackground(null);
+			button.setIcon(pTurn == 0 ? p1 : p2);
+			grid[row][col] = pTurn == 0 ? 1 : 2;
+			if (row != 0) {
+				grid[row - 1][col] = 0; // set spot above selected to open
+				ConnectFourNew.this.button[row - 1][col].setBackground(Color.CYAN);
+			} else
+				System.out.println("Maxed height reached");
+
+			if (checkWin(button)) {
+				System.out.println(pTurn == 0 ? "Red win" : "Blue win");
+				gameStatus.setIcon(pTurn == 0 ? rWin : bWin);
+				for (int i = boardSize - 2; i >= 0; i--) {
+					for (int j = boardSize - 2; j >= 0; j--) {
+						ConnectFourNew.this.button[i][j].setBackground(null);
+						if (grid[i][j] == 0)
+							ConnectFourNew.this.button[i][j].setBackground(Color.black);
+						grid[i][j] = -1;
 					}
-				}
-				pTurn = pTurn + 1;
-				System.out.println("");
+				}		 
 			}
-
-			else {
-				System.out.println("");
-				// For debugging purposes print selected location
-				System.out.println("Selected Row: " + row + " Col: " + col);
-			}
+			pTurn = (pTurn + 1) % 2;
+			System.out.println("");
 		}
 	}
 
 	// Resets the game board
 	private class clearListener implements ActionListener {
 		public void actionPerformed(ActionEvent event) {
-			for (int x = boardSize - 2; x >= 0; x--) {
-				for (int y = boardSize - 2; y >= 0; y--) {
+			for (int x = 0; x < boardSize - 1; x++) {
+				for (int y = 0; y < boardSize - 1; y++) {
 					System.out.println("Clearing spot: " + "x=" + x + " y=" + y);
 					grid[x][y] = -1;
 					button[x][y].setIcon(blnk);
+					button[x][y].setBackground(new JButton().getBackground());
 				}
-			}
-			for (int y = boardSize - 1; y >= 0; y--) {
-				grid[boardSize - 2][y] = 0;
-			}
-
-			win = false;
-			gameStatus.setIcon(status);
-
-			/////// For setting open spaces background color
-			for (int row = 0; row < boardSize - 1; row++) {
-				for (int col = 0; col < boardSize - 1; col++) {
-
-					button[row][col].setBackground(null);
-					
-					if (grid[row][col] == 0) {
-						button[row][col].setBackground(Color.cyan);
+				if (x == boardSize - 2) {
+					for (int y = 0; y < boardSize - 1; y++) {
+						grid[x][y] = 0;
+						button[x][y].setBackground(Color.cyan);
 					}
 				}
 			}
-			///////////////
+			win = false;
+			gameStatus.setIcon(status);
 			System.out.println("Done");
 			System.out.println("");
 		}
-	}
-
-	private boolean checkWin() {
-
-		/// Find "open space" and remove background color
-		for (int row = 0; row < boardSize - 1; row++) {
-			for (int col = 0; col < boardSize - 1; col++) {
-				if (grid[row][col] == 1 || grid[row][col] == 2) {
-					button[row][col].setBackground(null);
-
-				}
-			}
-		}
-		//////
-
-		int matchsFound = 1;
-		// Horizontal win check
-		if (hChk == true) {
-
-			for (int x = 0; x < boardSize; x++) {
-				for (int y = 0; y < boardSize - conToWin + 1; y++) { // added +1 for offset
-
-					if (grid[x][y] != 0 && grid[x][y] != -1) {
-						for (int c = 1; c < conToWin; c++) {
-							System.out.println("Horizontal check: " + "x:" + x + " " + "y:" + y + " " + "c:" + c); // Debugging
-							if (grid[x][y] == grid[x][y + c]) {
-								matchsFound++;
-							}
-						}
-
-					}
-					if (matchsFound >= conToWin) {
-						win = true;
-
-					}
-					matchsFound = 1;
-				}
-			}
-		}
-		// Vertical win check
-		if (vChk == true) {
-
-			for (int x = 0; x < boardSize - conToWin; x++) {
-				for (int y = 0; y < boardSize; y++) {
-
-					if (grid[x][y] != 0 && grid[x][y] != -1) {
-
-						for (int c = 1; c < conToWin; c++) {
-							System.out.println("Vertical check: " + "x:" + x + " " + "y:" + y + " " + "c:" + c); // Debugging
-							if (grid[x][y] == grid[x + c][y]) {
-								matchsFound++;
-							}
-						}
-					}
-
-					if (matchsFound >= conToWin) {
-						win = true;
-
-					}
-					matchsFound = 1;
-
-				}
-			}
-		}
-		// Diagonal negative check "\"
-		if (dNChk == true) {
-
-			for (int x = 0; x < boardSize - conToWin; x++) {
-				for (int y = 0; y < boardSize - conToWin; y++) {
-
-					if (grid[x][y] != 0 && grid[x][y] != -1) {
-
-						for (int c = 1; c < conToWin; c++) {
-							if (grid[x][y] == grid[x + c][y + c]) {
-								System.out.println(
-										"Diagonal positive check: " + "x:" + x + " " + "y:" + y + " " + "c:" + c); // Debugging
-								matchsFound++;
-							}
-						}
-					}
-					if (matchsFound >= conToWin) {
-						win = true;
-
-					}
-					matchsFound = 1;
-				}
-			}
-		}
-		// Diagonal positive slope check "/"
-		if (dPChk == true) {
-				for (int x = 0; x < boardSize; x++) {
-					for (int y = 0; y < boardSize - conToWin; y++) {
-						if ((grid[x][y] != 0) && (grid[x][y] != -1)) {
-							for (int c = 1; c < conToWin; c++) {
-
-								if ((x - c >= 0) && (y + c <= boardSize + 2)) { // Boundary security +2 for offset
-									System.out.println(
-											"Diagonal negative check: " + "x:" + x + " " + "y:" + y + " " + "c:" + c); // Debugging
-									if (grid[x][y] == grid[(x - c)][(y + c)]) {
-										matchsFound++;
-									}
-								}
-							}
-							System.out.println("");
-						}
-						if (matchsFound >= conToWin) {
-							this.win = true;
-							matchsFound = 0;
-						}
-						matchsFound = 1;
-					}
-				}
-		}
-
-		/////// For setting open spaces background color
-		if (this.win == true)
-			for (int row = 0; row < boardSize - 1; row++) {
-				for (int col = 0; col < boardSize - 1; col++) {
-
-					button[row][col].setBackground(null);
-					if (grid[row][col] == 0) {
-						button[row][col].setBackground(Color.black);
-					}
-				}
-			}
-		///////////////
-		return this.win;
 	}
 
 }
