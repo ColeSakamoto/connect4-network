@@ -50,11 +50,11 @@ public class Console {
 		System.out.println("<>---------------------------------------------------------<>");
 	}
 
-	private static void invokeUI(int boardSize, int conToWin) {
+	private static void invokeUI(int boardSize, int conToWin, String userName) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				JFrame.setDefaultLookAndFeelDecorated(true);
-				new ConnectFourNew(boardSize, conToWin);
+				new ConnectFourNew(boardSize, conToWin, userName);
 			}
 		});
 	}
@@ -85,7 +85,7 @@ public class Console {
 			 userName = args[2];
 		}
 		catch (ArrayIndexOutOfBoundsException e){
-			//No user name
+			System.out.println("No user name");
 		}
 
 		if (boardSize < conToWin || conToWin <= 0) {
@@ -101,7 +101,8 @@ public class Console {
 		System.out.println("ConnectToWinSize: " + conToWin);
 		System.out.println("User name: " + userName);
 		int offset = 1; // Offset grid starts at (0,0) instead of (1,1)
-		invokeUI(boardSize + offset, conToWin);
+		invokeUI(boardSize + offset, conToWin, userName);
+		
 
 	}
 }

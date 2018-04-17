@@ -12,12 +12,13 @@ public class ConnectFourNew {
 	private static boolean vChk = true; // Vertical check
 	private static boolean dPChk = true; // Diagonal positive check
 	private static boolean dNChk = true; // Diagonal negative check
-
+	private static boolean isOnline = false;
 	// Data
 	private int[][] grid;
 	private int pTurn;
 	private int boardSize, conToWin;
 	private boolean win = false;
+	private String userName = "";
 
 	// UI items
 	private JFrame frame;
@@ -28,12 +29,20 @@ public class ConnectFourNew {
 	private JButton clear;
 	private JButton gameStatus; // <--for status button
 
-	public ConnectFourNew(int boardSize, int conToWin) {
+	public ConnectFourNew(int boardSize, int conToWin, String userName) {
 
 		this.boardSize = boardSize;
 		this.conToWin = conToWin;
 		this.grid = new int[boardSize][boardSize];
-
+		
+		
+		
+		
+		
+		this.userName = userName;
+		if (this.userName.length() >= 1) {isOnline = true;}
+		
+		
 		loadResources();
 		setUpPanel();
 
@@ -42,7 +51,7 @@ public class ConnectFourNew {
 		this.frame.setContentPane(panel);
 		this.frame.pack();
 		this.frame.setVisible(true);
-
+		
 		System.out.println("HorizontalCheckEnabled?: " + hChk);
 		System.out.println("VerticalCheckEnabled?: " + vChk);
 		System.out.println("DiagonalPositiveCheckEnabled?: " + dPChk);
@@ -62,7 +71,7 @@ public class ConnectFourNew {
 		this.clear.addActionListener(new clearListener());
 
 		initGrid();
-
+		
 		this.panel.add(gameStatus); // <---for game status
 		this.panel.add(clear); // add clear button
 	}
