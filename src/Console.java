@@ -73,12 +73,19 @@ public class Console {
 																			// general contract!"
 		int boardSize = 0;
 		int conToWin = 0;
-
+        String userName = "";
 		try {
 			boardSize = Integer.parseInt(args[0]); // boardSize
 			conToWin = Integer.parseInt(args[1]); // Connections needed to win
+           
 		} catch (NumberFormatException e) {
 			printErrorInvalidInput3();
+		}
+		try{
+			 userName = args[2];
+		}
+		catch (ArrayIndexOutOfBoundsException e){
+			//No user name
 		}
 
 		if (boardSize < conToWin || conToWin <= 0) {
@@ -92,6 +99,7 @@ public class Console {
 
 		System.out.println("BoardSize: " + boardSize);
 		System.out.println("ConnectToWinSize: " + conToWin);
+		System.out.println("User name: " + userName);
 		int offset = 1; // Offset grid starts at (0,0) instead of (1,1)
 		invokeUI(boardSize + offset, conToWin);
 
