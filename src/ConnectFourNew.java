@@ -335,29 +335,40 @@ public class ConnectFourNew {
 	}
 
 	// Resets the game board
-	private class clearListener implements ActionListener {
+	class clearListener implements ActionListener {
 		public void actionPerformed(ActionEvent event) {
-			for (int x = 0; x < boardSize - 1; x++) {
-				for (int y = 0; y < boardSize - 1; y++) {
+			for (int x = boardSize - 2; x >= 0; x--) {
+				for (int y = boardSize - 2; y >= 0; y--) {
 					System.out.println("Clearing spot: " + "x=" + x + " y=" + y);
 					grid[x][y] = -1;
 					button[x][y].setIcon(blnk);
-					button[x][y].setBackground(new JButton().getBackground());
-				}
-				if (x == boardSize - 2) {
-					for (int y = 0; y < boardSize - 1; y++) {
-						grid[x][y] = 0;
-						button[x][y].setBackground(Color.cyan);
-					}
+
 				}
 			}
+			for (int y = boardSize - 1; y >= 0; y--) {
+				grid[boardSize - 2][y] = 0;
+			}
+
 			win = false;
 			gameStatus.setIcon(status);
+			
+			
+			///////For setting open spaces background color
+			for (int x = 0; x < boardSize - 1; x++) {
+				for (int y = 0; y < boardSize - 1; y++) {
+					
+						button[x][y].setBackground(null);
+						if (grid[x][y] == 0) {
+							button[x][y].setBackground(Color.cyan);
+						}											
+				}
+			}
+			///////////////
 			System.out.println("Done");
 			System.out.println("");
 		}
-	}
+	
 
 
-
+	 }
 }
