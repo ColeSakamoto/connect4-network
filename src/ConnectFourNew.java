@@ -58,8 +58,21 @@ public class ConnectFourNew {
 			    inStream=new DataInputStream(socket.getInputStream());
 			    outStream=new DataOutputStream(socket.getOutputStream());
 			    br=new BufferedReader(new InputStreamReader(System.in));
+			    
+			    outStream.writeUTF("start"); //Signal keyword for requesting boardSize and conToWin arguments from server
+			      outStream.flush();
+			      serverMessage=inStream.readUTF();//Wait for server response
+			      System.out.println("From Server: "+serverMessage);
+			      String[] val = serverMessage.split(",");
+			      this.boardSize = Integer.parseInt(val[0])+1; //Get arguments from server
+			      this.conToWin = Integer.parseInt(val[1]);
+			
 			   
-			} catch(ConnectException ce){
+			} catch (NumberFormatException num){
+				System.out.println("Server arguments exception");
+				num.printStackTrace();
+			}
+			catch(ConnectException ce){
 				System.out.println("No server found");
 			}
 			
@@ -277,7 +290,7 @@ public class ConnectFourNew {
 			System.out.println("Selected Row: " + row + " Col: " + col);
 			
 			////////////For sending position data to server
-			String clientMessage = Integer.toString(row)+", "+Integer.toString(col);
+			clientMessage = Integer.toString(row)+", "+Integer.toString(col);
 			if (isOnline == true){
 				try{
 				outStream.writeUTF(clientMessage);

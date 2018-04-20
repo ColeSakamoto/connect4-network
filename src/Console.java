@@ -82,7 +82,9 @@ public class Console {
 			printErrorInvalidInput3();
 		}
 		try{
-			 userName = args[2];
+			 userName = args[2]; //Game will be played in online mode.  boardSize and conToWin will be determined by server
+				
+			 
 		}
 		catch (ArrayIndexOutOfBoundsException e){
 			System.out.println("No user name");
