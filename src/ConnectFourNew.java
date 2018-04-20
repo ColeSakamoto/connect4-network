@@ -3,6 +3,12 @@ import javax.swing.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.net.ConnectException;
+import java.net.Socket;
 import java.net.URL;
 
 public class ConnectFourNew {
@@ -29,6 +35,11 @@ public class ConnectFourNew {
 	private JButton clear;
 	private JButton gameStatus; // <--for status button
 
+	private DataInputStream inStream;
+	private DataOutputStream outStream;
+	private BufferedReader br;
+	private String clientMessage="",serverMessage="";
+	private Socket socket;
 	public ConnectFourNew(int boardSize, int conToWin, String userName) {
 
 		this.boardSize = boardSize;
@@ -38,9 +49,24 @@ public class ConnectFourNew {
 		
 		
 		
-		
+		////////If a user name is inputed this player will become a client
 		this.userName = userName;
-		if (this.userName.length() >= 1) {isOnline = true;}
+		if (this.userName.length() >= 1) {
+			isOnline = true;
+			try{
+			 Socket socket=new Socket("127.0.0.1",8888);
+			    inStream=new DataInputStream(socket.getInputStream());
+			    outStream=new DataOutputStream(socket.getOutputStream());
+			    br=new BufferedReader(new InputStreamReader(System.in));
+			   
+			} catch(ConnectException ce){
+				System.out.println("No server found");
+			}
+			
+			catch(Exception e){
+				e.printStackTrace();
+			}
+		}/////////////////
 		
 		
 		loadResources();
@@ -96,13 +122,13 @@ public class ConnectFourNew {
 		for (int x = boardSize - offset; x >= 0; x--) {
 			for (int y = boardSize - offsetCol; y >= 0; y--) {
 				grid[x][y] = -1;
-				System.out.println("Setting up restricted spot at " + x + " " + y);
+				//>>>>>System.out.println("Setting up restricted spot at " + x + " " + y);
 			}
 		}
 		// Add buttons for first play through
 		for (int row = 0; row < boardSize - 1; row++) {
 			for (int col = 0; col < boardSize - 1; col++) {
-				System.out.println("Setting up button at " + row + " " + col);
+				//>>>>>>System.out.println("Setting up button at " + row + " " + col);
 				JButton button = new CoordinateButton(row, col, blnk);
 				button.addActionListener(new buttonListener());
 				if (grid[row][col] == 0) {
@@ -206,6 +232,18 @@ public class ConnectFourNew {
 		// Diagonal positive slope check "/"
 		if (dPChk && checkPositiveDiagonal(grid, row, col, conToWin, boardSize))
 			win = true;
+		
+	///////For setting open spaces background color
+		for (row = 0; row < boardSize - 1; row++) {
+			for (col = 0; col < boardSize - 1; col++) {
+				if (grid[row][col] == 0)
+				{
+					button[row][col].setBackground(Color.cyan);
+					button[row][col].setOpaque(true);
+				}
+			}
+		}
+		//////			
 
 		return this.win;
 	}
@@ -237,7 +275,26 @@ public class ConnectFourNew {
 
 			// For debugging purposes print selected location
 			System.out.println("Selected Row: " + row + " Col: " + col);
-
+			
+			////////////For sending position data to server
+			String clientMessage = Integer.toString(row)+", "+Integer.toString(col);
+			if (isOnline == true){
+				try{
+				outStream.writeUTF(clientMessage);
+			      outStream.flush();
+			      serverMessage=inStream.readUTF();
+			      System.out.println(serverMessage);
+				} catch (NullPointerException e){
+					System.out.println("No server to send message");
+				}
+				
+				catch(Exception e){
+					System.out.println("Client action listener exception");
+					e.printStackTrace();
+				}
+			}
+			//////////////
+			
 			if (grid[row][col] != 0)
 				return;
 
@@ -260,11 +317,21 @@ public class ConnectFourNew {
 							ConnectFourNew.this.button[i][j].setBackground(Color.black);
 						grid[i][j] = -1;
 					}
-				}		 
+				}		
+				
+				
+				
 			}
 			pTurn = (pTurn + 1) % 2;
 			System.out.println("");
+			
+			
+			
+			
 		}
+		
+		
+		
 	}
 
 	// Resets the game board
@@ -290,5 +357,7 @@ public class ConnectFourNew {
 			System.out.println("");
 		}
 	}
+
+
 
 }
