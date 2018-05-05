@@ -150,6 +150,7 @@ public class ConnectFourNew {
 		// 0 = empty spot
 		// 1 = for player1 RED
 		// 2 = for player2 BLUE
+		if (isOnline == false) {
 		int offset = 3; // To disable all rows except for the very bottom on initial start
 		int offsetCol = 1; // to make the column size=row size
 		for (int x = boardSize - offset; x >= 0; x--) {
@@ -157,6 +158,16 @@ public class ConnectFourNew {
 				grid[x][y] = -1;
 				//>>>>>System.out.println("Setting up restricted spot at " + x + " " + y);
 			}
+		}
+		}
+		else {
+			for (int x = boardSize-3 ; x >= 0; x--) {
+				for (int y = boardSize-2 ; y >= 0; y--) {
+					grid[x][y] = -1;
+					//>>>>>System.out.println("Setting up restricted spot at " + x + " " + y);
+				}
+			}
+			
 		}
 		// Add buttons for first play through
 		for (int row = 0; row < boardSize - 1; row++) {
@@ -515,10 +526,10 @@ public class ConnectFourNew {
 				    	  int lastClient = Integer.parseInt(val[1]);
 							System.out.println(lastClient == 1 ? "Red win" : "Blue win");
 							gameStatus.setIcon(lastClient == 1 ? rWin : bWin);			
-							outStream.writeUTF("exit");// Exit the server 
-						    outStream.flush();
-						    outStreamWk.writeUTF("exit");// Exit the server 
-						    outStreamWk.flush();
+							//outStream.writeUTF("exit");// Exit the server 
+						   // outStream.flush();
+						   // outStreamWk.writeUTF("exit");// Exit the server 
+						    //outStreamWk.flush();
 							break;
 						}
 	           }

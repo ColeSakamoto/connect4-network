@@ -63,11 +63,11 @@ public class GameBoard {
     public boolean checkWin() {
 
 		//Vertical check
-		int matchsFound = 2, i = 1; //matchsFound = 1 changed to 2 (java Server 5 4) but still needed 5 to win
+		int matchsFound = 1, i = 1; 
 		while (i < conToWin && this.lastRow - i >= 0) {
 			if (grid[this.lastRow][this.lastCol] != grid[this.lastRow - i][this.lastCol])
 				break;
-			if(grid[this.lastRow][this.lastCol] == 1){ // only total up 1 or 2
+			if(grid[this.lastRow][this.lastCol] == lastClient){ // only total up 1 or 2
 			matchsFound++;
 			i++;
 			}
@@ -82,7 +82,7 @@ public class GameBoard {
 			}
 		}
 	
-		if (matchsFound >= conToWin){return true;}
+		if (matchsFound >= conToWin){System.out.println("Vertical win found");return true;}
 				//////Horizontal check
 				matchsFound = 1; i = 1;
 				while (i < conToWin && this.lastCol - i >= 0) {
@@ -104,7 +104,7 @@ public class GameBoard {
 					i++;
 					}
 				}
-		if (matchsFound >= conToWin){return true;}
+		if (matchsFound >= conToWin){System.out.println("Horizontal win found");return true;}
 		
 		//Positive diagonal
 		matchsFound = 2; i = 1; //matchsFound = 1 changed to 2 (java Server 5 4) but still needed 5 to win
@@ -125,7 +125,7 @@ public class GameBoard {
 			i++;
 			}
 		}
-		if (matchsFound >= conToWin){return true;}
+		if (matchsFound >= conToWin){System.out.println("Positive diagonal win found");return true;}
 		
 		//Negative
 		matchsFound = 2; i = 1; //matchsFound = 1 changed to 2 (java Server 5 4) but still needed 5 to win
@@ -138,6 +138,7 @@ public class GameBoard {
 			}
 		}
 		i = 1;
+		
 		while (i < conToWin && this.lastRow + i < boardSize - 1 && this.lastCol + i < boardSize - 1) {
 			if (grid[this.lastRow][this.lastCol] != grid[this.lastRow + i][this.lastCol + i])
 				break;
@@ -146,7 +147,7 @@ public class GameBoard {
 			i++;
 			}
 		}
-		if (matchsFound >= conToWin){return true;}
+		if (matchsFound >= conToWin){System.out.println("Negative diagonal win found");return true;}
 		return false;
     }
 }

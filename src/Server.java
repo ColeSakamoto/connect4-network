@@ -82,14 +82,11 @@ class ServerClientThread extends Thread {
    
      while(!clientMessage.equals("bye")){
     	 val = clientMessage.split(",");
-       clientMessage=inStream.readUTF();//Wait for client message
-       clientMessage = clientMessage+","+clientID;
+         clientMessage=inStream.readUTF();//Wait for client message
+         clientMessage = clientMessage+","+clientID;
        
-       // System.out.println("From Client-" +clientNo+ ": "+clientMessage);    
-       /////Do something
-       //determine which player goes first
-       //check the move of the player
-       
+        //System.out.println("From Client-" +clientNo+ ": "+clientMessage);    
+
        if (clientMessage.contains("start")){ //Clients requests boardSize and conToWin arguments
     	   //System.out.println("From Client-" +clientNo+ ": "+clientMessage);
     	   serverMessage= Integer.toString(boardSize)+","+Integer.toString(conToWin)+","+clientNo;
@@ -162,5 +159,6 @@ class ServerClientThread extends Thread {
    }
  }
 }
+
 
 
