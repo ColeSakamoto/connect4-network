@@ -48,16 +48,16 @@ public class ConnectFourNew {
 	private String clientMessage="",serverMessage="";
 	private Socket socket;
 	boolean startCheck = false;
-	
+
 	public ConnectFourNew(int boardSize, int conToWin, String userName) {
 
 		this.boardSize = boardSize;
 		this.conToWin = conToWin;
 		this.grid = new int[boardSize][boardSize];
-		
-		
-		
-		
+
+
+
+
 		////////If a user name is inputed this player will become a client
 		this.userName = userName;
 		if (this.userName.length() >= 1) {
@@ -66,14 +66,14 @@ public class ConnectFourNew {
 			 Socket socket=new Socket("127.0.0.1",8888); //Main connection
 			    inStream=new DataInputStream(socket.getInputStream());
 			    outStream=new DataOutputStream(socket.getOutputStream());
-			  
+
 			    Socket socketwk=new Socket("127.0.0.1",8888); //Connection for worker thread to prevent cross communication
 			    inStreamWk=new DataInputStream(socketwk.getInputStream());// between the main connection
 			    outStreamWk=new DataOutputStream(socketwk.getOutputStream());
-			    
-			    
-			 
-			    
+
+
+
+
 			    outStream.writeUTF("start"); //Signal keyword for requesting boardSize and conToWin arguments from server
 			      outStream.flush();
 			      serverMessage=inStream.readUTF();//Wait for server response
@@ -86,7 +86,7 @@ public class ConnectFourNew {
 			      this.grid = new int[this.boardSize][this.boardSize];
 			      WorkerThread wk = new WorkerThread();
 			      wk.start();
-			   
+
 			} catch (NumberFormatException num){
 				System.out.println("Server arguments exception");
 				num.printStackTrace();
@@ -94,13 +94,13 @@ public class ConnectFourNew {
 			catch(ConnectException ce){
 				System.out.println("No server found");
 			}
-			
+
 			catch(Exception e){
 				e.printStackTrace();
 			}
 		}/////////////////
-		
-		
+
+
 		loadResources();
 		setUpPanel();
 
@@ -109,8 +109,8 @@ public class ConnectFourNew {
 		this.frame.setContentPane(panel);
 		this.frame.pack();
 		this.frame.setVisible(true);
-		   
-		   
+
+
 		System.out.println("HorizontalCheckEnabled?: " + hChk);
 		System.out.println("VerticalCheckEnabled?: " + vChk);
 		System.out.println("DiagonalPositiveCheckEnabled?: " + dPChk);
@@ -130,7 +130,7 @@ public class ConnectFourNew {
 		this.clear.addActionListener(new clearListener());
 
 		initGrid();
-		
+
 		this.panel.add(gameStatus); // <---for game status
 		this.panel.add(clear); // add clear button
 	}
@@ -167,7 +167,7 @@ public class ConnectFourNew {
 					//>>>>>System.out.println("Setting up restricted spot at " + x + " " + y);
 				}
 			}
-			
+
 		}
 		// Add buttons for first play through
 		for (int row = 0; row < boardSize - 1; row++) {
@@ -257,26 +257,45 @@ public class ConnectFourNew {
 		return matchsFound < conToWin ? false : true;
 	}
 
+	private boolean checkWinHelper(int[][] grid, int row, int col, int conToWin, int size) {
+		System.out.println("inside helper");
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				System.out.print(grid[i][j]);
+			}
+			System.out.println();
+		}
+		System.out.println();
+		int[] dx = { 0, 1, 1, 1, 0,-1,-1,-1};
+		int[] dy = { 1, 1, 0,-1,-1,-1, 0, 1};
+		int player = grid[row][col];
+		for(int dir = 0; dir < 8; dir++){
+			int x = col + dx[dir];
+			int y = row + dy[dir];
+			int count = 1;
+			if(count >= conToWin){
+				return true;
+			}
+			while(x >= 0 && x < size && y >= 0 && y < size && grid[y][x] == player){
+				count++;
+				x += dx[dir];
+				y += dy[dir];
+				if(count >= conToWin){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	private boolean checkWin(CoordinateButton b) {
+		System.out.println("inside checkWin in ConnectFourNew");
 		int row = b.getRow();
 		int col = b.getCol();
 
-		// Horizontal win check
-		if (hChk && checkHorizontal(grid, row, col, conToWin, boardSize))
-			win = true;
+		// win check
+		win = checkWinHelper(grid, row, col, conToWin, boardSize);
 
-		// Vertical win check
-		if (vChk && checkVertical(grid, row, col, conToWin, boardSize))
-			win = true;
-
-		// Diagonal negative check "\"
-		if (dNChk && checkNegativeDiagonal(grid, row, col, conToWin, boardSize))
-			win = true;
-
-		// Diagonal positive slope check "/"
-		if (dPChk && checkPositiveDiagonal(grid, row, col, conToWin, boardSize))
-			win = true;
-		
 	///////For setting open spaces background color
 		for (row = 0; row < boardSize - 1; row++) {
 			for (col = 0; col < boardSize - 1; col++) {
@@ -287,7 +306,7 @@ public class ConnectFourNew {
 				}
 			}
 		}
-		//////			
+		//////
 
 		return this.win;
 	}
@@ -316,13 +335,13 @@ public class ConnectFourNew {
 			CoordinateButton button = (CoordinateButton) event.getSource();
 			final int row = button.getRow();
 			final int col = button.getCol();
-			
+
 			startCheck = true; //For starting win check in worker thread
 			// For debugging purposes print selected location
 			System.out.println("Selected Row: " + row + " Col: " + col);
-			
+
 			////////////For sending position data to server
-			 
+
 			if (isOnline == true){
 				try{
 				System.out.println("At buttonListener to server: "+"turn,"+Integer.toString(row)+","+Integer.toString(col));
@@ -331,7 +350,7 @@ public class ConnectFourNew {
 			      String message =inStream.readUTF();
 			      System.out.println("From server at ButtonListener: "+message);
 			      if (message.equals("bad") || message.equals("restrict") ){return;} //Not player's turn so do nothing
-			      
+
 			      //if (grid[row][col] != 0)
 					//	return;
 
@@ -357,31 +376,31 @@ public class ConnectFourNew {
 //									ConnectFourNew.this.button[i][j].setBackground(Color.black);
 //								grid[i][j] = -1;
 //							}
-//						}		
-//						
-//						
-//						
+//						}
+//
+//
+//
 //					}
 
-				    
+
 				}catch (SocketException e){
 					System.out.println("Game has been won: socket exception");
 				}
 				catch (EOFException e){
 					System.out.println("Game has been won: EOF exception");
 				}
- 
+
 				catch (NullPointerException e){
 					System.out.println("No server to send message");
 				}
-				
+
 				catch(Exception e){
 					System.out.println("Client action listener exception");
 					e.printStackTrace();
 				}
 			} else{
 			//////////////
-			
+
 			if (grid[row][col] != 0)
 				return;
 
@@ -404,10 +423,10 @@ public class ConnectFourNew {
 							ConnectFourNew.this.button[i][j].setBackground(Color.black);
 						grid[i][j] = -1;
 					}
-				}		
-				
-				
-				
+				}
+
+
+
 			}
 //			if (checkWin(button)) {
 //				System.out.println(pTurn == 0 ? "Red win" : "Blue win");
@@ -419,21 +438,21 @@ public class ConnectFourNew {
 //							ConnectFourNew.this.button[i][j].setBackground(Color.black);
 //						grid[j][i] = -1;
 //					}
-//				}		
-//				
-//				
-//				
+//				}
+//
+//
+//
 //			}
 			pTurn = (pTurn + 1) % 2;
 			System.out.println("");
-			
-			
-			
-			
+
+
+
+
 		}
-		
+
 		}
-		
+
 	}
 
 	// Resets the game board
@@ -453,30 +472,30 @@ public class ConnectFourNew {
 
 			win = false;
 			gameStatus.setIcon(status);
-			
-			
+
+
 			///////For setting open spaces background color
 			for (int x = 0; x < boardSize - 1; x++) {
 				for (int y = 0; y < boardSize - 1; y++) {
-					
+
 						button[x][y].setBackground(null);
 						if (grid[x][y] == 0) {
 							button[x][y].setBackground(Color.cyan);
-						}											
+						}
 				}
 			}
 			///////////////
 			System.out.println("Done");
 			System.out.println("");
 		}
-	
+
 
 
 	 }
 	class WorkerThread extends Thread{
 		public void run()
 	    {
-			
+
 			int row = 0;
 			int col = 0;
 			String[] val;
@@ -484,7 +503,7 @@ public class ConnectFourNew {
 	        {
 	           while(true){
 	        	   TimeUnit.SECONDS.sleep(1);
-	        	   outStreamWk.writeUTF("lastMove"); 
+	        	   outStreamWk.writeUTF("lastMove");
 				      outStreamWk.flush();
 				      String message1 = inStreamWk.readUTF();//Wait for server response
 				      val = message1.split(",");
@@ -493,31 +512,31 @@ public class ConnectFourNew {
 				    	  row = Integer.parseInt(val[1]);
 				    	  col = Integer.parseInt(val[2]);
 				    	  button[col][row].setBackground(null);
-				    	  
+
 				    	  if (clientNo == 2){
 								button[col][row].setIcon(p1);
 								} else button[col][row].setIcon(p2);
 				    	  //button[col][row].setIcon(p2);
-				    	
-				    	  
+
+
 				    	  startCheck = true; // start win checking
 				         // System.out.println("From Server Lastmove?: "+message1);
 				    	  grid[row][col] = 2;
-				    	 
-				    	  
+
+
 				    	 if (col > 0){
 				    	  button[col-1][row].setBackground(Color.cyan);
 						  button[col-1][row].setOpaque(true);
-						  
+
 						  //if (row - 2 >= 0)
 						 // grid[row - 2][col] = 0; // set spot above selected to open
 				    	 }
-				    	  
-				    	  
-				    	
+
+
+
 				      }
 				      if (startCheck == true){
-				      outStreamWk.writeUTF("checkWin"); 
+				      outStreamWk.writeUTF("checkWin");
 				      outStreamWk.flush();
 				      message1 = inStreamWk.readUTF();//Wait for server response
 				      //System.out.println("From Server checkWin?: "+message1);
@@ -525,16 +544,16 @@ public class ConnectFourNew {
 				    	  val = message1.split(",");
 				    	  int lastClient = Integer.parseInt(val[1]);
 							System.out.println(lastClient == 1 ? "Red win" : "Blue win");
-							gameStatus.setIcon(lastClient == 1 ? rWin : bWin);			
-							//outStream.writeUTF("exit");// Exit the server 
+							gameStatus.setIcon(lastClient == 1 ? rWin : bWin);
+							//outStream.writeUTF("exit");// Exit the server
 						   // outStream.flush();
-						   // outStreamWk.writeUTF("exit");// Exit the server 
+						   // outStreamWk.writeUTF("exit");// Exit the server
 						    //outStreamWk.flush();
 							break;
 						}
 	           }
 	           }
-	 
+
 	        }
 	        catch (Exception e)
 	        {
@@ -542,6 +561,6 @@ public class ConnectFourNew {
 	        }
 	    }
 	}
-	
-	
+
+
 }

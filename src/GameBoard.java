@@ -8,16 +8,16 @@ public class GameBoard {
 	int lastClient = 0; //Change last made by player 1 or 2?
 	boolean win = false;
 	int turn = 1; //Player's turn 1 or 2
-	
+
 	int grid[][];
-	
+
 	public GameBoard(int boardSize, int conToWin){
 		this.boardSize = boardSize;
 		this.conToWin = conToWin;
 		this.grid = new int[boardSize][boardSize];
 		initGrid();
 	}
-	
+
 	public void initGrid(){
 		// -1 = restricted spot
 				// 0 = empty spot
@@ -32,12 +32,12 @@ public class GameBoard {
 					}
 				}
 	}
-	
+
 	public void setLastMove(int row, int col){
 		this.lastRow = row;
 		this.lastCol = col;
 	}
-	
+
 	public int getlastRow(){
 		return this.lastRow;
 	}
@@ -50,107 +50,50 @@ public class GameBoard {
 	public int getconToWin(){
 		return this.conToWin;
 	}
-	
+
     public int getInfo(int row, int col){
     	return grid[row][col];
     }
     public void setGrid(int row, int col, int info){
     	grid[row][col] = info;
     }
-    
-    
-    
-    public boolean checkWin() {
 
-		//Vertical check
-		int matchsFound = 1, i = 1; 
-		while (i < conToWin && this.lastRow - i >= 0) {
-			if (grid[this.lastRow][this.lastCol] != grid[this.lastRow - i][this.lastCol])
-				break;
-			if(grid[this.lastRow][this.lastCol] == lastClient){ // only total up 1 or 2
-			matchsFound++;
-			i++;
+
+
+    public boolean checkWin() {
+			System.out.println("inside checkWin() in GameBoard()");
+			System.out.println("current player: " + lastClient);
+			System.out.println("last row: " + lastRow);
+			System.out.println("last col: " + lastCol);
+			for (int i = 0; i < boardSize; i++) {
+				for (int j = 0; j < boardSize; j++) {
+					if (grid[i][j] != -1) {
+						System.out.print(" ");
+					}
+					System.out.print(grid[i][j]);
+				}
+				System.out.println();
 			}
-		}
-		i = 1;
-		while (i < conToWin && this.lastRow + i < boardSize - 1) {
-			if (grid[this.lastRow][this.lastCol] != grid[this.lastRow + i][this.lastCol])
-				break;
-			if(grid[this.lastRow][this.lastCol] == lastClient){
-			matchsFound++;
-			i++;
-			}
-		}
-	
-		if (matchsFound >= conToWin){System.out.println("Vertical win found");return true;}
-				//////Horizontal check
-				matchsFound = 1; i = 1;
-				while (i < conToWin && this.lastCol - i >= 0) {
-					if (grid[this.lastRow][this.lastCol] != grid[this.lastRow][this.lastCol - i])
-						break;
-					if(grid[this.lastRow][this.lastCol] == lastClient){
-					matchsFound++;
-					i++;
-					
-					
+			System.out.println();
+			int[] dx = { 0, 1, 1, 1, 0,-1,-1,-1};
+			int[] dy = { 1, 1, 0,-1,-1,-1, 0, 1};
+			int player = lastClient;
+			for(int dir = 0; dir < 8; dir++){
+				int x = lastCol + dx[dir];
+				int y = lastRow + dy[dir];
+				int count = 1;
+				if(count >= conToWin){
+					return true;
+				}
+				while(x >= 0 && x < boardSize && y >= 0 && y < boardSize && grid[y][x] == player){
+					count++;
+					x += dx[dir];
+					y += dy[dir];
+					if(count >= conToWin){
+						return true;
 					}
 				}
-				i = 1;
-				while (i < conToWin && this.lastCol + i < boardSize - 1) {
-					if (grid[this.lastRow][this.lastCol] != grid[this.lastRow][this.lastCol + i])
-						break;
-					if(grid[this.lastRow][this.lastCol] == lastClient){
-					matchsFound++;
-					i++;
-					}
-				}
-		if (matchsFound >= conToWin){System.out.println("Horizontal win found");return true;}
-		
-		//Positive diagonal
-		matchsFound = 1; i = 1; //matchsFound = 1 changed to 2 (java Server 5 4) but still needed 5 to win
-		while (i < conToWin && this.lastRow - i >= 0 && this.lastCol + i < boardSize - 1) {
-			if (grid[this.lastRow][this.lastCol] != grid[this.lastRow - i][this.lastCol + i])
-				break;
-			if(grid[this.lastRow][this.lastCol] == lastClient){
-			matchsFound++;
-			//System.out.println(grid[this.lastRow][this.lastCol]+": "+this.lastRow+" "+this.lastCol);
-			i++;
 			}
-		}
-		i = 1;
-		while (i < conToWin && this.lastRow + i < boardSize - 1 && this.lastCol - i >= 0) {
-			if (grid[this.lastRow][this.lastCol] != grid[this.lastRow + i][this.lastCol - i])
-				break;
-			if(grid[this.lastRow][this.lastCol] == lastClient){
-			matchsFound++;
-			//System.out.println(grid[this.lastRow][this.lastCol]+": "+this.lastRow+" "+this.lastCol);
-			i++;
-			}
-		}
-		if (matchsFound >= conToWin){System.out.println("Positive diagonal win found");return true;}
-		
-		//Negative
-		matchsFound = 2; i = 1; //matchsFound = 1 changed to 2 (java Server 5 4) but still needed 5 to win
-		while (i < conToWin && this.lastRow - i >= 0 && this.lastCol - i >= 0) {
-			if (grid[this.lastRow][this.lastCol] != grid[this.lastRow - i][this.lastCol - i])
-				break;
-			if(grid[this.lastRow][this.lastCol] == lastClient){
-			matchsFound++;
-			i++;
-			}
-		}
-		i = 1;
-		
-		while (i < conToWin && this.lastRow + i < boardSize - 1 && this.lastCol + i < boardSize - 1) {
-			if (grid[this.lastRow][this.lastCol] != grid[this.lastRow + i][this.lastCol + i])
-				break;
-			if(grid[this.lastRow][this.lastCol] == lastClient){
-			matchsFound++;
-			i++;
-			}
-		}
-		if (matchsFound >= conToWin){System.out.println("Negative diagonal win found");return true;}
-		return false;
+			return false;
     }
 }
-
