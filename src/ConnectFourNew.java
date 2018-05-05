@@ -71,20 +71,17 @@ public class ConnectFourNew {
 			    inStreamWk=new DataInputStream(socketwk.getInputStream());// between the main connection
 			    outStreamWk=new DataOutputStream(socketwk.getOutputStream());
 
-
-
-
 			    outStream.writeUTF("start"); //Signal keyword for requesting boardSize and conToWin arguments from server
 			      outStream.flush();
 			      serverMessage=inStream.readUTF();//Wait for server response
 			      System.out.println("From Server: "+serverMessage);
 			      String[] val = serverMessage.split(",");
-			      this.boardSize = Integer.parseInt(val[0])+1; //Get arguments from server
-			      this.conToWin = Integer.parseInt(val[1]);
-			      clientNo = Integer.parseInt(val[2]);
+			      this.boardSize = Integer.parseInt(val[0])+1; //Get boardSize argument from server
+			      this.conToWin = Integer.parseInt(val[1]); //Get Connections to win argument from server
+			      clientNo = Integer.parseInt(val[2]); //Get client number from server
 			      System.out.println("ClientNo: "+clientNo);
 			      this.grid = new int[this.boardSize][this.boardSize];
-			      WorkerThread wk = new WorkerThread();
+			      WorkerThread wk = new WorkerThread(); //Create the worker thread
 			      wk.start();
 
 			} catch (NumberFormatException num){
@@ -545,10 +542,10 @@ public class ConnectFourNew {
 				    	  int lastClient = Integer.parseInt(val[1]);
 							System.out.println(lastClient == 1 ? "Red win" : "Blue win");
 							gameStatus.setIcon(lastClient == 1 ? rWin : bWin);
-							//outStream.writeUTF("exit");// Exit the server
-						   // outStream.flush();
-						   // outStreamWk.writeUTF("exit");// Exit the server
-						    //outStreamWk.flush();
+							outStream.writeUTF("exit");// Exit the server
+						    outStream.flush();
+						    outStreamWk.writeUTF("exit");// Exit the server
+						    outStreamWk.flush();
 							break;
 						}
 	           }
@@ -564,3 +561,4 @@ public class ConnectFourNew {
 
 
 }
+
