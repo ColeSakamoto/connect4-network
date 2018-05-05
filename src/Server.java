@@ -104,7 +104,8 @@ class ServerClientThread extends Thread {
         
        else if (clientMessage.contains("turn") && clientNo == board.turn){
     	   val = clientMessage.split(",");
-    	  if( board.getInfo(Integer.parseInt(val[1]), Integer.parseInt(val[2])) == -1) {
+    	   
+    	  if( board.getInfo(Integer.parseInt(val[1]), Integer.parseInt(val[2])) != 0) {
     		  outStream.writeUTF("restrict");
 	   		  outStream.flush();
 	   		  
