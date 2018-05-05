@@ -83,7 +83,7 @@ public class ConnectFourNew {
 			      this.conToWin = Integer.parseInt(val[1]);
 			      clientNo = Integer.parseInt(val[2]);
 			      System.out.println("ClientNo: "+clientNo);
-			      
+			      this.grid = new int[this.boardSize][this.boardSize];
 			      WorkerThread wk = new WorkerThread();
 			      wk.start();
 			   
@@ -330,7 +330,7 @@ public class ConnectFourNew {
 			      outStream.flush();
 			      String message =inStream.readUTF();
 			      System.out.println("From server at ButtonListener: "+message);
-			      if (message.equals("bad")){return;} //Not player's turn so do nothing
+			      if (message.equals("bad") || message.equals("restrict") ){return;} //Not player's turn so do nothing
 			      
 			      //if (grid[row][col] != 0)
 					//	return;

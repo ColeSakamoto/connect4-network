@@ -107,13 +107,13 @@ public class GameBoard {
 		if (matchsFound >= conToWin){System.out.println("Horizontal win found");return true;}
 		
 		//Positive diagonal
-		matchsFound = 2; i = 1; //matchsFound = 1 changed to 2 (java Server 5 4) but still needed 5 to win
+		matchsFound = 1; i = 1; //matchsFound = 1 changed to 2 (java Server 5 4) but still needed 5 to win
 		while (i < conToWin && this.lastRow - i >= 0 && this.lastCol + i < boardSize - 1) {
 			if (grid[this.lastRow][this.lastCol] != grid[this.lastRow - i][this.lastCol + i])
 				break;
 			if(grid[this.lastRow][this.lastCol] == lastClient){
 			matchsFound++;
-			System.out.println(grid[this.lastRow][this.lastCol]+": "+this.lastRow+" "+this.lastCol);
+			//System.out.println(grid[this.lastRow][this.lastCol]+": "+this.lastRow+" "+this.lastCol);
 			i++;
 			}
 		}
@@ -123,6 +123,7 @@ public class GameBoard {
 				break;
 			if(grid[this.lastRow][this.lastCol] == lastClient){
 			matchsFound++;
+			//System.out.println(grid[this.lastRow][this.lastCol]+": "+this.lastRow+" "+this.lastCol);
 			i++;
 			}
 		}

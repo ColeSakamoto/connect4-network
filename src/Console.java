@@ -49,6 +49,14 @@ public class Console {
 		System.out.println("Ex. java -jar Connect4.jar 6 3.2 is INVALID");
 		System.out.println("<>---------------------------------------------------------<>");
 	}
+	
+	private static void printErrorCon2() {
+		System.out.println("<>---------------------INVALID INPUT-----------------------<>");
+		System.out.println("These arguments will cause a problem...");
+		System.out.println("");
+		System.out.println("Connections to win must be > 2");
+		System.out.println("<>---------------------------------------------------------<>");
+	}
 
 	private static void invokeUI(int boardSize, int conToWin, String userName) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
@@ -68,6 +76,7 @@ public class Console {
 			printErrorMissingArg2();
 			return;
 		}
+		
 
 		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true"); // Fixes "Comparison method violates its
 																			// general contract!"
@@ -88,6 +97,11 @@ public class Console {
 		}
 		catch (ArrayIndexOutOfBoundsException e){
 			System.out.println("No user name");
+		}
+		
+		if (conToWin <= 2) {
+			printErrorCon2();
+			return;
 		}
 
 		if (boardSize < conToWin || conToWin <= 0) {
