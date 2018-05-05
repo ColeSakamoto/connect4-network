@@ -113,6 +113,7 @@ public class GameBoard {
 				break;
 			if(grid[this.lastRow][this.lastCol] == lastClient){
 			matchsFound++;
+			System.out.println(grid[this.lastRow][this.lastCol]+": "+this.lastRow+" "+this.lastCol);
 			i++;
 			}
 		}
@@ -151,3 +152,4 @@ public class GameBoard {
 		return false;
     }
 }
+

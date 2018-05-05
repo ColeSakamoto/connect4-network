@@ -13,6 +13,7 @@ public class Server {
    try{
 	   boardSize = Integer.parseInt(args[0]); // argument to declare board size of the game
 	   conToWin = Integer.parseInt(args[1]); // argument to declare connections to win for the game
+	   if (conToWin <= 2) {System.out.println("Connections to win argument must be > 2"); System.exit(0);}
 	  board = new GameBoard(boardSize, conToWin);
      ServerSocket server=new ServerSocket(8888);
      int counter = 0;
@@ -102,12 +103,17 @@ class ServerClientThread extends Thread {
        }
         
        else if (clientMessage.contains("turn") && clientNo == board.turn){
+    	   val = clientMessage.split(",");
+    	  if( board.getInfo(Integer.parseInt(val[1]), Integer.parseInt(val[2])) == -1) {
+    		  outStream.writeUTF("restrict");
+	   		  outStream.flush();
+	   		  
+    	  } else {
     	   if (clientNo == 1){board.turn = 2;}// For player turn control
     	   else if (clientNo == 2){board.turn = 1;}
     	   
     	   System.out.println("From Client-" +clientNo+ ": Recording move: "+clientMessage);
-    	   val = clientMessage.split(",");
-    	   
+    	 
     	  
     	   if (board.getInfo(Integer.parseInt(val[1]), Integer.parseInt(val[2])) == 0){ //only mark an open spot
     	   board.lastRow = Integer.parseInt(val[1]);
@@ -119,11 +125,17 @@ class ServerClientThread extends Thread {
     	   			} 
     	   		outStream.writeUTF("good1");
 	   			outStream.flush();
-    	   } else{
+    	   } 
+    	   else if (board.getInfo(Integer.parseInt(val[1]), Integer.parseInt(val[2])) == -1){
+    		   outStream.writeUTF("restrict");
+	   			outStream.flush();
+    	   }
+    	   else{
     	   System.out.println("BoardInfo: "+board.getInfo(Integer.parseInt(val[1]), Integer.parseInt(val[2])));
     	   outStream.writeUTF("Taken");
   			outStream.flush();
     	   }
+       }
        }
        else if (clientMessage.contains("checkWin")){
     	   
@@ -159,6 +171,7 @@ class ServerClientThread extends Thread {
    }
  }
 }
+
 
 
 
