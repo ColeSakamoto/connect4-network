@@ -9,24 +9,25 @@ public class Server {
 	private static int conToWin;
 
 	public static void main(String[] args) throws Exception {
-			GameBoard board;
-   try{
-	   boardSize = Integer.parseInt(args[0]); // argument to declare board size of the game
-	   conToWin = Integer.parseInt(args[1]); // argument to declare connections to win for the game
-	   if (conToWin <= 2) {System.out.println("Connections to win argument must be > 2"); System.exit(0);}
-	  board = new GameBoard(boardSize, conToWin);
-     ServerSocket server=new ServerSocket(8888);
-     int counter = 0;
-     int id = 0;
-     System.out.println("Server waiting for clients");
-     while(true){
-
+		GameBoard board;
+   	try {
+	  	boardSize = Integer.parseInt(args[0]); // argument to declare board size of the game
+	   	conToWin = Integer.parseInt(args[1]); // argument to declare connections to win for the game
+	   	if (conToWin <= 2) {
+				System.out.println("Connections to win argument must be > 2");
+				System.exit(0);
+			}
+		  board = new GameBoard(boardSize, conToWin);
+			ServerSocket server=new ServerSocket(8888);
+			int counter = 0;
+			int id = 0;
+			System.out.println("Server waiting for clients");
+			while(true){
        counter++;
        if (counter == 2){id = 11;} //Flag for worker connection
        else if (counter == 3){id = 2;}
        else if (counter == 4){id = 22;} //Flag for worker connection
        else id = 1;
-
        int clientID = generateID();
 
        Socket serverClient=server.accept();  //server accept the client connection request
@@ -38,9 +39,7 @@ public class Server {
    } catch (ArrayIndexOutOfBoundsException arr){
 	   System.out.println("Missing argumnents exception");
 	   System.out.println("Ex. java Server boardSize conToWin");
-   }
-
-   catch(Exception e){
+   } catch(Exception e){
 	   System.out.println("Server socket exception");
      System.out.println(e);
    }
@@ -91,57 +90,54 @@ class ServerClientThread extends Thread {
        if (clientMessage.contains("start")){ //Clients requests boardSize and conToWin arguments
     	   //System.out.println("From Client-" +clientNo+ ": "+clientMessage);
     	   serverMessage= Integer.toString(boardSize)+","+Integer.toString(conToWin)+","+clientNo;
-           outStream.writeUTF(serverMessage);
-           outStream.flush();
+         outStream.writeUTF(serverMessage);
+         outStream.flush();
        }
        else if (clientMessage.contains("lastMove")){ //Clients requests boardSize and conToWin arguments
     	   String lastMessage= Integer.toString(board.lastClient)+","+Integer.toString(board.lastCol)+","+Integer.toString(board.lastRow);
     	   //System.out.println("Server message to Client-" +clientNo+": "+serverMessage);
            //System.out.println();
     	   outStream.writeUTF(lastMessage);
-           outStream.flush();
+         outStream.flush();
+       } else if (clientMessage.contains("turn") && clientNo == board.turn) {
+    	 		val = clientMessage.split(",");
+
+	    	  if( board.get(Integer.parseInt(val[1]), Integer.parseInt(val[2])) != 0) {
+	    		  outStream.writeUTF("restrict");
+		   		  outStream.flush();
+
+	    	  } else {
+		    	   if (clientNo == 1){board.turn = 2;}// For player turn control
+		    	   else if (clientNo == 2){board.turn = 1;}
+
+		    	   System.out.println("From Client-" +clientNo+ ": Recording move: "+clientMessage);
+
+
+		    	   if (board.get(Integer.parseInt(val[1]), Integer.parseInt(val[2])) == 0) { //only mark an open spot
+			    	    board.lastRow = Integer.parseInt(val[1]);
+			    	    board.lastCol = Integer.parseInt(val[2]);
+			    	    board.lastClient = clientNo;
+			    	    board.set(board.lastRow, board.lastCol, clientNo); //set position of grid to player number
+							 	if (board.lastRow > 0){
+							  	board.set(board.lastRow-1, board.lastCol, 0); //set spot above to open
+							  }
+		    	   		outStream.writeUTF("good1");
+				   			outStream.flush();
+		    	   }
+		    	   else if (board.get(Integer.parseInt(val[1]), Integer.parseInt(val[2])) == -1){
+		    		   outStream.writeUTF("restrict");
+			   			 outStream.flush();
+		    	   }
+		    	   else{
+			    	   System.out.println("BoardInfo: "+board.get(Integer.parseInt(val[1]), Integer.parseInt(val[2])));
+			    	   outStream.writeUTF("Taken");
+			  			 outStream.flush();
+		    	   }
+	       }
        }
-
-       else if (clientMessage.contains("turn") && clientNo == board.turn){
-    	   val = clientMessage.split(",");
-
-    	  if( board.get(Integer.parseInt(val[1]), Integer.parseInt(val[2])) != 0) {
-    		  outStream.writeUTF("restrict");
-	   		  outStream.flush();
-
-    	  } else {
-    	   if (clientNo == 1){board.turn = 2;}// For player turn control
-    	   else if (clientNo == 2){board.turn = 1;}
-
-    	   System.out.println("From Client-" +clientNo+ ": Recording move: "+clientMessage);
-
-
-    	   if (board.get(Integer.parseInt(val[1]), Integer.parseInt(val[2])) == 0){ //only mark an open spot
-    	   board.lastRow = Integer.parseInt(val[1]);
-    	   board.lastCol = Integer.parseInt(val[2]);
-    	   board.lastClient = clientNo;
-    	   board.set(board.lastRow, board.lastCol, clientNo); //set position of grid to player number
-    	   		if (board.lastRow > 0){
-    	   			board.set(board.lastRow-1, board.lastCol, 0); //set spot above to open
-    	   			}
-    	   		outStream.writeUTF("good1");
-	   			outStream.flush();
-    	   }
-    	   else if (board.get(Integer.parseInt(val[1]), Integer.parseInt(val[2])) == -1){
-    		   outStream.writeUTF("restrict");
-	   			outStream.flush();
-    	   }
-    	   else{
-    	   System.out.println("BoardInfo: "+board.get(Integer.parseInt(val[1]), Integer.parseInt(val[2])));
-    	   outStream.writeUTF("Taken");
-  			outStream.flush();
-    	   }
-       }
-       }
-       else if (clientMessage.contains("checkWin")){
-
-    	    outStream.writeUTF(Boolean.toString(board.checkWin())+","+board.lastClient);
- 			outStream.flush();
+       else if (clientMessage.contains("checkWin")) {
+	  	    outStream.writeUTF(Boolean.toString(board.checkWin())+","+board.lastClient);
+		 			outStream.flush();
        }
        else if (clientMessage.contains("exit")){
     	     break;
@@ -149,10 +145,9 @@ class ServerClientThread extends Thread {
 
        //////
        else{
-
     	    System.out.println("bad from client: "+clientNo +":"+ clientMessage);
-            outStream.writeUTF("bad");
-            outStream.flush();
+          outStream.writeUTF("bad");
+          outStream.flush();
        }
      }
      inStream.close();
@@ -164,10 +159,9 @@ class ServerClientThread extends Thread {
 
    catch(EOFException eof){
 
-   }
-   catch(Exception ex){
+   } catch(Exception ex){
      ex.printStackTrace();
-   }finally{
+   } finally{
      System.out.println("Client No:" + clientNo + " disconnected ");
    }
  }
