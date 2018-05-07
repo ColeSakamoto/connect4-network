@@ -49,7 +49,7 @@ public class Console {
 		System.out.println("Ex. java -jar Connect4.jar 6 3.2 is INVALID");
 		System.out.println("<>---------------------------------------------------------<>");
 	}
-	
+
 	private static void printErrorCon2() {
 		System.out.println("<>---------------------INVALID INPUT-----------------------<>");
 		System.out.println("These arguments will cause a problem...");
@@ -62,7 +62,7 @@ public class Console {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				JFrame.setDefaultLookAndFeelDecorated(true);
-				new ConnectFourNew(boardSize, conToWin, userName);
+				new ConnectFourView(boardSize, conToWin, userName);
 			}
 		});
 	}
@@ -76,7 +76,7 @@ public class Console {
 			printErrorMissingArg2();
 			return;
 		}
-		
+
 
 		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true"); // Fixes "Comparison method violates its
 																			// general contract!"
@@ -86,19 +86,19 @@ public class Console {
 		try {
 			boardSize = Integer.parseInt(args[0]); // boardSize
 			conToWin = Integer.parseInt(args[1]); // Connections needed to win
-           
+
 		} catch (NumberFormatException e) {
 			printErrorInvalidInput3();
 		}
 		try{
 			 userName = args[2]; //Game will be played in online mode.  boardSize and conToWin will be determined by server
-				
-			 
+
+
 		}
 		catch (ArrayIndexOutOfBoundsException e){
 			System.out.println("No user name");
 		}
-		
+
 		if (conToWin <= 2) {
 			printErrorCon2();
 			return;
@@ -116,9 +116,9 @@ public class Console {
 		System.out.println("BoardSize: " + boardSize);
 		System.out.println("ConnectToWinSize: " + conToWin);
 		System.out.println("User name: " + userName);
-		int offset = 1; // Offset grid starts at (0,0) instead of (1,1)
+		int offset = 0; // Offset grid starts at (0,0) instead of (1,1)
 		invokeUI(boardSize + offset, conToWin, userName);
-		
+
 
 	}
 }

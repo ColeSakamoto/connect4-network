@@ -14,28 +14,39 @@ public class GameBoard {
 	public GameBoard(int boardSize, int conToWin){
 		this.boardSize = boardSize;
 		this.conToWin = conToWin;
-		this.grid = new int[boardSize][boardSize];
 		initGrid();
 	}
 
 	public void initGrid(){
 		// -1 = restricted spot
-				// 0 = empty spot
-				// 1 = for player1 RED
-				// 2 = for player2 BLUE
-				int offset = 2; // To disable all rows except for the very bottom on initial start
-				int offsetCol = 1; // to make the column size=row size
-				for (int x = boardSize - offset; x >= 0; x--) {
-					for (int y = boardSize - offsetCol; y >= 0; y--) {
-						grid[x][y] = -1;
-						//System.out.println("Setting up restricted spot at " + x + " " + y);
-					}
-				}
+		// 0 = empty spot
+		// 1 = for player1 RED
+		// 2 = for player2 BLUE
+		// Disable all rows except bottom row
+		grid = new int[boardSize][boardSize];
+		for (int x = 0; x < boardSize - 1; x++) {
+			for (int y = 0; y < boardSize; y++) {
+				grid[x][y] = -1;
+			}
+		}
 	}
 
 	public void setLastMove(int row, int col){
 		this.lastRow = row;
 		this.lastCol = col;
+	}
+
+	public int get(int row, int col) {
+		return grid[row][col];
+	}
+
+	public void set(int row, int col, int val) {
+		grid[row][col] = val;
+		if (val > 0) {
+			lastRow = row;
+			lastCol = col;
+			lastClient = val;
+		}
 	}
 
 	public int getlastRow(){
@@ -51,53 +62,46 @@ public class GameBoard {
 		return this.conToWin;
 	}
 
-    public int getInfo(int row, int col){
-    	return grid[row][col];
-    }
-    public void setGrid(int row, int col, int info){
-    	grid[row][col] = info;
-    }
-
-		public void printBoard() {
-			System.out.println("inside checkWin() in GameBoard()");
-			System.out.println("current player: " + lastClient);
-			System.out.println("last row: " + lastRow);
-			System.out.println("last col: " + lastCol);
-			for (int i = 0; i < boardSize; i++) {
-				for (int j = 0; j < boardSize; j++) {
-					if (grid[i][j] != -1) {
-						System.out.print(" ");
-					}
-					System.out.print(grid[i][j]);
+	public void printBoard() {
+		System.out.println("inside checkWin() in GameBoard()");
+		System.out.println("current player: " + lastClient);
+		System.out.println("last row: " + lastRow);
+		System.out.println("last col: " + lastCol);
+		for (int i = 0; i < boardSize; i++) {
+			for (int j = 0; j < boardSize; j++) {
+				if (grid[i][j] != -1) {
+					System.out.print(" ");
 				}
-				System.out.println();
+				System.out.print(grid[i][j]);
 			}
 			System.out.println();
 		}
+		System.out.println();
+	}
 
-		private int countDir(int col, int row, int dx, int dy, int player) {
-			int x = col + dx;
-			int y = row + dy;
-			int count = 0;
-			while(x >= 0 && x < boardSize && y >= 0 && y < boardSize && grid[y][x] == player){
-				count++;
-				x += dx;
-				y += dy;
-			}
-			return count;
+	private int countDir(int col, int row, int dx, int dy, int player) {
+		int x = col + dx;
+		int y = row + dy;
+		int count = 0;
+		while(x >= 0 && x < boardSize && y >= 0 && y < boardSize && grid[y][x] == player){
+			count++;
+			x += dx;
+			y += dy;
 		}
+		return count;
+	}
 
-    public boolean checkWin() {
-			printBoard();
-			int[] dx = { 0, 1, 1, 1, 0,-1,-1,-1};
-			int[] dy = { 1, 1, 0,-1,-1,-1, 0, 1};
-			for(int dir = 0; dir < 4; dir++){
-				int count = 1 + countDir(lastCol, lastRow, dx[dir], dy[dir], lastClient) +
-												countDir(lastCol, lastRow, -dx[dir], -dy[dir], lastClient);
-				if(count >= conToWin){
-					return true;
-				}
+  public boolean checkWin() {
+		printBoard();
+		int[] dx = { 0, 1, 1, 1, 0,-1,-1,-1};
+		int[] dy = { 1, 1, 0,-1,-1,-1, 0, 1};
+		for(int dir = 0; dir < 4; dir++){
+			int count = 1 + countDir(lastCol, lastRow, dx[dir], dy[dir], lastClient) +
+											countDir(lastCol, lastRow, -dx[dir], -dy[dir], lastClient);
+			if(count >= conToWin){
+				return true;
 			}
-			return false;
-    }
+		}
+		return false;
+  }
 }
