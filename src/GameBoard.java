@@ -58,9 +58,7 @@ public class GameBoard {
     	grid[row][col] = info;
     }
 
-
-
-    public boolean checkWin() {
+		public void printBoard() {
 			System.out.println("inside checkWin() in GameBoard()");
 			System.out.println("current player: " + lastClient);
 			System.out.println("last row: " + lastRow);
@@ -75,23 +73,29 @@ public class GameBoard {
 				System.out.println();
 			}
 			System.out.println();
+		}
+
+		private int countDir(int col, int row, int dx, int dy, int player) {
+			int x = col + dx;
+			int y = row + dy;
+			int count = 0;
+			while(x >= 0 && x < boardSize && y >= 0 && y < boardSize && grid[y][x] == player){
+				count++;
+				x += dx;
+				y += dy;
+			}
+			return count;
+		}
+
+    public boolean checkWin() {
+			printBoard();
 			int[] dx = { 0, 1, 1, 1, 0,-1,-1,-1};
 			int[] dy = { 1, 1, 0,-1,-1,-1, 0, 1};
-			int player = lastClient;
-			for(int dir = 0; dir < 8; dir++){
-				int x = lastCol + dx[dir];
-				int y = lastRow + dy[dir];
-				int count = 1;
+			for(int dir = 0; dir < 4; dir++){
+				int count = 1 + countDir(lastCol, lastRow, dx[dir], dy[dir], lastClient) +
+												countDir(lastCol, lastRow, -dx[dir], -dy[dir], lastClient);
 				if(count >= conToWin){
 					return true;
-				}
-				while(x >= 0 && x < boardSize && y >= 0 && y < boardSize && grid[y][x] == player){
-					count++;
-					x += dx[dir];
-					y += dy[dir];
-					if(count >= conToWin){
-						return true;
-					}
 				}
 			}
 			return false;
