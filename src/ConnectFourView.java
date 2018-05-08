@@ -116,8 +116,9 @@ public class ConnectFourView {
 		initGrid();
 
 		this.panel.add(gameStatus); // <---for game status
+
+		this.panel.add(clear); // add clear button
 		if (!isOnline) {
-			this.panel.add(clear); // add clear button
 			this.panel.add(player1);
 			this.panel.add(player2);
 		}
@@ -347,12 +348,13 @@ public class ConnectFourView {
 					outStreamWk.flush();
 					String message1 = inStreamWk.readUTF();//Wait for server response
 					val = message1.split(",");
-					// System.out.println("From Server Lastmove?: "+message1);
+					System.out.println("From Server Lastmove?: "+message1);
 					if (!val[0].equals("good1") && !val[0].equals("Taken")
 						&& Integer.parseInt(val[0]) != clientNo
 						&& Integer.parseInt(val[0]) != 0) {
 							row = Integer.parseInt(val[1]);
 							col = Integer.parseInt(val[2]);
+							if (row < 0 || col < 0) continue;
 							button[col][row].setBackground(null);
 
 							if (clientNo == 2) {
@@ -363,7 +365,7 @@ public class ConnectFourView {
 
 							startCheck = true; // start win checking
 							 // System.out.println("From Server Lastmove?: "+message1);
-							board.set(row, col, 2);
+							//board.set(row, col, 2);
 
 							if (col > 0){
 								button[col-1][row].setBackground(Color.cyan);

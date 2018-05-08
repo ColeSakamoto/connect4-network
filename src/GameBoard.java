@@ -1,8 +1,8 @@
 
 public class GameBoard {
 
-	int lastRow = 0;
-	int lastCol = 0;
+	int lastRow = -1;
+	int lastCol = -1;
 	int boardSize = 0;
 	int conToWin = 0;
 	int lastClient = 2; //Change last made by player 1 or 2?
@@ -58,6 +58,8 @@ public class GameBoard {
 		counter = 0;
 		winner = 0;
 		lastClient = 2;
+		lastRow = -1;
+		lastCol = -1;
 	}
 
 	// return row number

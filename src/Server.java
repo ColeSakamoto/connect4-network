@@ -117,6 +117,7 @@ class ServerClientThread extends Thread {
 			    	    board.lastRow = Integer.parseInt(val[1]);
 			    	    board.lastCol = Integer.parseInt(val[2]);
 			    	    board.lastClient = clientNo;
+								System.out.println("server setting clientNO");
 			    	    board.set(board.lastRow, board.lastCol, clientNo); //set position of grid to player number
 							 	if (board.lastRow > 0){
 							  	board.set(board.lastRow-1, board.lastCol, 0); //set spot above to open
@@ -136,6 +137,7 @@ class ServerClientThread extends Thread {
 	       }
        }
        else if (clientMessage.contains("checkWin")) {
+				 System.out.println("server checking win");
 	  	    outStream.writeUTF(Boolean.toString(board.checkWin())+","+board.lastClient);
 		 			outStream.flush();
        }
