@@ -20,7 +20,6 @@ public class ConnectFourView {
 	private static boolean isOnline = false;
 	// Data
 	private GameBoard board;
-	private int pTurn;
 	private int boardSize, conToWin;
 	private boolean win = false;
 	private String userName = "";
@@ -35,6 +34,8 @@ public class ConnectFourView {
 	private JButton[][] button;
 	private JButton clear;
 	private JButton gameStatus; // <--for status button
+	private JCheckBox player1;
+	private JCheckBox player2;
 
 	private DataInputStream inStream;
 	private DataOutputStream outStream;
@@ -108,16 +109,23 @@ public class ConnectFourView {
 		this.gameStatus.setIcon(status); // <---for game status
 		this.clear = new JButton("Reset"); // clear button name
 		this.clear.addActionListener(new clearListener());
+		this.player1 = new JCheckBox("player1", true);
+		//this.player1.addActionListener(new player1Listener());
+		this.player2 = new JCheckBox("player2", true);
 
 		initGrid();
 
 		this.panel.add(gameStatus); // <---for game status
-		this.panel.add(clear); // add clear button
+		if (!isOnline) {
+			this.panel.add(clear); // add clear button
+			this.panel.add(player1);
+			this.panel.add(player2);
+		}
 	}
 
 	private void loadResources() {
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		blnk = null; //new ImageIcon(classLoader.getResource("images/BlackDot.jpg"));
+		blnk = null;//new ImageIcon(classLoader.getResource("images/BlackDot.jpg"));
 		p1 = new ImageIcon(classLoader.getResource("images/REDload.gif"));
 		p2 = new ImageIcon(classLoader.getResource("images/BLUEload.gif"));
 		bWin = new ImageIcon(classLoader.getResource("images/BLUEWin.gif"));
@@ -127,8 +135,7 @@ public class ConnectFourView {
 
 	private void initGrid() {
 		board.initGrid();
-		board.printBoard();
-		pTurn = 1;
+		//board.printBoard();
 		System.out.println("boardSize: " + boardSize);
 
 		// Add buttons for first play through
@@ -145,6 +152,8 @@ public class ConnectFourView {
 				this.button[row][col] = button;
 			}
 		}
+
+		nextPlayer();
 	}
 
 	private boolean checkWin(CoordinateButton b) {
@@ -153,20 +162,8 @@ public class ConnectFourView {
 		// win check
 		win = board.checkWin();
 
-		updateButtonColor();
+		updateView();
 		return this.win;
-	}
-
-	private void updateButtonColor() {
-		///////For setting open spaces background color
-		for (int row = 0; row < boardSize; row++) {
-			for (int col = 0; col < boardSize; col++) {
-				if (board.get(row, col) == 0) {
-					button[row][col].setBackground(Color.cyan);
-					button[row][col].setOpaque(true);
-				}
-			}
-		}
 	}
 
 	@SuppressWarnings("serial")
@@ -243,8 +240,8 @@ public class ConnectFourView {
 				}
 
 				button.setBackground(null);
-				button.setIcon(pTurn == 1 ? p1 : p2);
-				board.set(row, col, pTurn);
+				button.setIcon(board.getCurrentPlayer() == 1 ? p1 : p2);
+				board.set(row, col, board.getCurrentPlayer());
 				if (row != 0) {
 					board.set(row - 1, col, 0); // set spot above selected to open
 					ConnectFourView.this.button[row - 1][col].setBackground(Color.CYAN);
@@ -253,22 +250,56 @@ public class ConnectFourView {
 				}
 
 				if (checkWin(button)) {
-					System.out.println(pTurn == 1 ? "Red win" : "Blue win");
-					gameStatus.setIcon(pTurn == 1 ? rWin : bWin);
-					for (int i = boardSize - 1; i >= 0; i--) {
-						for (int j = boardSize - 1; j >= 0; j--) {
-							if (board.get(i, j) == 0) {
-								ConnectFourView.this.button[i][j].setBackground(Color.black);
-								board.set(i, j, -1);
-							} else {
-								ConnectFourView.this.button[i][j].setBackground(null);
-							}
-						}
-					}
+					updateView();
+					// for (int i = boardSize - 1; i >= 0; i--) {
+					// 	for (int j = boardSize - 1; j >= 0; j--) {
+					// 		if (board.get(i, j) == 0) {
+					// 			ConnectFourView.this.button[i][j].setBackground(Color.black);
+					// 			board.set(i, j, -1);
+					// 		} else {
+					// 			ConnectFourView.this.button[i][j].setBackground(null);
+					// 		}
+					// 	}
+					// }
+					return;
 				}
-				// Switch pTurn between 1 and 2
-				pTurn = 3 - pTurn;
-				System.out.println();
+				nextPlayer();
+			}
+		}
+	}
+
+	// CHeck if the next player is AI
+	public void nextPlayer() {
+		//board.printBoard();
+		//System.out.println("checking next player. currentPlayer" + board.getCurrentPlayer());
+		if (board.getCurrentPlayer() == 1 && !player1.isSelected() ||
+				board.getCurrentPlayer() == 2 && !player2.isSelected()) {
+				AI ai = new AI(board);
+				int col = ai.bestMove();
+				int row = board.addChip(col);
+				//System.out.println("AI move: row "+ row + ", col: " + col);
+				updateView();
+		}
+	}
+
+	public void updateView() {
+		System.out.println("inside updateView");
+		//board.printBoard();
+		if (board.getWinner() > 0) {
+			System.out.println(board.getLastClient() == 1 ? "Red win" : "Blue win");
+			gameStatus.setIcon(board.getLastClient() == 1 ? rWin : bWin);
+		}
+		for (int i = 0; i < boardSize; i++) {
+			for (int j = 0; j < boardSize; j++) {
+				int val = board.get(i, j);
+				if (val > 0) {
+					button[i][j].setIcon(val == 1 ? p1 : p2);
+					button[i][j].setBackground(null);
+				} else if (val == 0) {
+					//System.out.println("i,j= " + i + " " + j );
+					button[i][j].setBackground(Color.CYAN);
+					button[i][j].setOpaque(true);
+				}
 			}
 		}
 	}
@@ -293,8 +324,16 @@ public class ConnectFourView {
 			///////////////
 			System.out.println("Done");
 			System.out.println("");
+
+			nextPlayer();
 		}
   }
+
+	// class player1Listener implents ActionListener {
+	// 	public void actionPerformed(ActionEvent event) {
+	// 		System.out.println(player.isSelected)
+	// 	}
+	// }
 
 	class WorkerThread extends Thread {
 		public void run() {
