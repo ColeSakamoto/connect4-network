@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ConnectException;
 import java.net.Socket;
@@ -42,9 +43,11 @@ public class ConnectFourView {
 	private DataInputStream inStreamWk;
 	private DataOutputStream outStreamWk;
 	private BufferedReader br;
-	private String clientMessage="",serverMessage="";
+	private String clientMessage = "", serverMessage = "";
 	private Socket socket;
 	boolean startCheck = false;
+
+	boolean isReset = false;
 
 	public ConnectFourView(int boardSize, int conToWin, String userName) {
 
@@ -57,35 +60,16 @@ public class ConnectFourView {
 		if (this.userName.length() >= 1) {
 			isOnline = true;
 			try {
-			 		Socket socket=new Socket("127.0.0.1",8888); //Main connection
-			    inStream=new DataInputStream(socket.getInputStream());
-			    outStream=new DataOutputStream(socket.getOutputStream());
-
-			    Socket socketwk=new Socket("127.0.0.1",8888); //Connection for worker thread to prevent cross communication
-			    inStreamWk=new DataInputStream(socketwk.getInputStream());// between the main connection
-			    outStreamWk=new DataOutputStream(socketwk.getOutputStream());
-
-			    outStream.writeUTF("start"); //Signal keyword for requesting boardSize and conToWin arguments from server
-		      outStream.flush();
-		      serverMessage=inStream.readUTF();//Wait for server response
-		      System.out.println("From Server: "+serverMessage);
-		      String[] val = serverMessage.split(",");
-		      this.boardSize = Integer.parseInt(val[0]); //Get boardSize argument from server
-		      this.conToWin = Integer.parseInt(val[1]); //Get Connections to win argument from server
-		      clientNo = Integer.parseInt(val[2]); //Get client number from server
-		      System.out.println("ClientNo: "+clientNo);
-		      WorkerThread wk = new WorkerThread(); //Create the worker thread
-		      wk.start();
-			} catch (NumberFormatException num){
+				startChannel();
+			} catch (NumberFormatException num) {
 				System.out.println("Server arguments exception");
 				num.printStackTrace();
-			} catch(ConnectException ce){
+			} catch (ConnectException ce) {
 				System.out.println("No server found");
-			} catch(Exception e){
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}/////////////////
-
+		} /////////////////
 
 		loadResources();
 		setUpPanel();
@@ -97,6 +81,28 @@ public class ConnectFourView {
 		this.frame.setVisible(true);
 
 		System.out.println("<>---------------------------Welcome To Connect 4 v4.6------------------------------<>");
+	}
+
+	private void startChannel() throws NumberFormatException, ConnectException, Exception{
+		Socket socket = new Socket("127.0.0.1", 8888); //Main connection
+		inStream = new DataInputStream(socket.getInputStream());
+		outStream = new DataOutputStream(socket.getOutputStream());
+
+		Socket socketwk = new Socket("127.0.0.1", 8888); //Connection for worker thread to prevent cross communication
+		inStreamWk = new DataInputStream(socketwk.getInputStream());// between the main connection
+		outStreamWk = new DataOutputStream(socketwk.getOutputStream());
+
+		outStream.writeUTF("start"); //Signal keyword for requesting boardSize and conToWin arguments from server
+		outStream.flush();
+		serverMessage = inStream.readUTF();//Wait for server response
+		System.out.println("From Server: " + serverMessage);
+		String[] val = serverMessage.split(",");
+		this.boardSize = Integer.parseInt(val[0]); //Get boardSize argument from server
+		this.conToWin = Integer.parseInt(val[1]); //Get Connections to win argument from server
+		clientNo = Integer.parseInt(val[2]); //Get client number from server
+		System.out.println("ClientNo: " + clientNo);
+		WorkerThread wk = new WorkerThread(); //Create the worker thread
+		wk.start();
 	}
 
 	private void setUpPanel() {
@@ -116,8 +122,8 @@ public class ConnectFourView {
 		initGrid();
 
 		this.panel.add(gameStatus); // <---for game status
-
 		this.panel.add(clear); // add clear button
+
 		if (!isOnline) {
 			this.panel.add(player1);
 			this.panel.add(player2);
@@ -199,19 +205,20 @@ public class ConnectFourView {
 			////////////For sending position data to server
 
 			if (isOnline == true) {
-				try{
-					System.out.println("At buttonListener to server: " + "turn," + Integer.toString(row) + "," + Integer.toString(col));
-					outStream.writeUTF("turn," + Integer.toString(row)+","+Integer.toString(col));
-		      outStream.flush();
-		      String message =inStream.readUTF();
-		      System.out.println("From server at ButtonListener: " + message);
-		      if (message.equals("bad") || message.equals("restrict")) {
+				try {
+					System.out.println("At buttonListener to server: " + "turn," + Integer.toString(row) + ","
+							+ Integer.toString(col));
+					outStream.writeUTF("turn," + Integer.toString(row) + "," + Integer.toString(col));
+					outStream.flush();
+					String message = inStream.readUTF();
+					System.out.println("From server at ButtonListener: " + message);
+					if (message.equals("bad") || message.equals("restrict")) {
 						// Not player's turn so do nothing
 						return;
 					}
 
 					button.setBackground(null);
-					if (clientNo == 1){
+					if (clientNo == 1) {
 						button.setIcon(p1);
 					} else {
 						button.setIcon(p2);
@@ -224,13 +231,13 @@ public class ConnectFourView {
 					} else {
 						System.out.println("Maxed height reached");
 					}
-				} catch (SocketException e){
+				} catch (SocketException e) {
 					System.out.println("Game has been won: socket exception");
-				} catch (EOFException e){
+				} catch (EOFException e) {
 					System.out.println("Game has been won: EOF exception");
-				} catch (NullPointerException e){
+				} catch (NullPointerException e) {
 					System.out.println("No server to send message");
-				} catch(Exception e){
+				} catch (Exception e) {
 					System.out.println("Client action listener exception");
 					e.printStackTrace();
 				}
@@ -273,13 +280,13 @@ public class ConnectFourView {
 	public void nextPlayer() {
 		//board.printBoard();
 		//System.out.println("checking next player. currentPlayer" + board.getCurrentPlayer());
-		if (board.getCurrentPlayer() == 1 && !player1.isSelected() ||
-				board.getCurrentPlayer() == 2 && !player2.isSelected()) {
-				AI ai = new AI(board);
-				int col = ai.bestMove();
-				int row = board.addChip(col);
-				//System.out.println("AI move: row "+ row + ", col: " + col);
-				updateView();
+		if (board.getCurrentPlayer() == 1 && !player1.isSelected()
+				|| board.getCurrentPlayer() == 2 && !player2.isSelected()) {
+			AI ai = new AI(board);
+			int col = ai.bestMove();
+			int row = board.addChip(col);
+			//System.out.println("AI move: row "+ row + ", col: " + col);
+			updateView();
 		}
 	}
 
@@ -321,6 +328,14 @@ public class ConnectFourView {
 
 			win = false;
 			gameStatus.setIcon(status);
+			try {
+				outStreamWk.writeUTF("reset");
+				startChannel();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 			///////////////
 			System.out.println("Done");
@@ -328,7 +343,7 @@ public class ConnectFourView {
 
 			nextPlayer();
 		}
-  }
+	}
 
 	// class player1Listener implents ActionListener {
 	// 	public void actionPerformed(ActionEvent event) {
@@ -341,63 +356,77 @@ public class ConnectFourView {
 			int row = 0;
 			int col = 0;
 			String[] val;
-	    try {
-	    	while(true) {
-	      	TimeUnit.SECONDS.sleep(1);
+			try {
+				while (true) {
+					TimeUnit.SECONDS.sleep(1);
 					outStreamWk.writeUTF("lastMove");
 					outStreamWk.flush();
 					String message1 = inStreamWk.readUTF();//Wait for server response
 					val = message1.split(",");
-					System.out.println("From Server Lastmove?: "+message1);
-					if (!val[0].equals("good1") && !val[0].equals("Taken")
-						&& Integer.parseInt(val[0]) != clientNo
-						&& Integer.parseInt(val[0]) != 0) {
-							row = Integer.parseInt(val[1]);
-							col = Integer.parseInt(val[2]);
-							if (row < 0 || col < 0) continue;
-							button[col][row].setBackground(null);
+					System.out.println("From Server Lastmove?: " + message1);
+					if (!val[0].equals("good1") && !val[0].equals("Taken") && Integer.parseInt(val[0]) != clientNo
+							&& Integer.parseInt(val[0]) != 0) {
+						row = Integer.parseInt(val[1]);
+						col = Integer.parseInt(val[2]);
+						if (row < 0 || col < 0)
+							continue;
+						button[col][row].setBackground(null);
 
-							if (clientNo == 2) {
-								button[col][row].setIcon(p1);
-							} else {
-								button[col][row].setIcon(p2);
-							}
+						if (clientNo == 2) {
+							button[col][row].setIcon(p1);
+						} else {
+							button[col][row].setIcon(p2);
+						}
 
-							startCheck = true; // start win checking
-							 // System.out.println("From Server Lastmove?: "+message1);
-							//board.set(row, col, 2);
+						startCheck = true; // start win checking
+						// System.out.println("From Server Lastmove?: "+message1);
+						//board.set(row, col, 2);
 
-							if (col > 0){
-								button[col-1][row].setBackground(Color.cyan);
-								button[col-1][row].setOpaque(true);
-								//if (row - 2 >= 0)
-								// grid[row - 2][col] = 0; // set spot above selected to open
-							}
-		      }
+						if (col > 0) {
+							button[col - 1][row].setBackground(Color.cyan);
+							button[col - 1][row].setOpaque(true);
+							//if (row - 2 >= 0)
+							// grid[row - 2][col] = 0; // set spot above selected to open
+						}
+					}
+
+					if (val[0].contains("reset")) {
+						outStream.writeUTF("exit");// Exit the server
+						outStream.flush();
+						outStreamWk.writeUTF("exit");// Exit the server
+						outStreamWk.flush();
+						break;
+					}
 
 					if (startCheck == true) {
-			      outStreamWk.writeUTF("checkWin");
-			      outStreamWk.flush();
-			      message1 = inStreamWk.readUTF();//Wait for server response
-			      //System.out.println("From Server checkWin?: "+message1);
-			      if (message1.contains("true")) {
-			    	  val = message1.split(",");
-			    	  int lastClient = Integer.parseInt(val[1]);
+						outStreamWk.writeUTF("checkWin");
+						outStreamWk.flush();
+						message1 = inStreamWk.readUTF();//Wait for server response
+						//System.out.println("From Server checkWin?: "+message1);
+						if (message1.contains("true")) {
+							val = message1.split(",");
+							int lastClient = Integer.parseInt(val[1]);
 							System.out.println(lastClient == 1 ? "Red win" : "Blue win");
 							gameStatus.setIcon(lastClient == 1 ? rWin : bWin);
 							outStream.writeUTF("exit");// Exit the server
-					    outStream.flush();
-					    outStreamWk.writeUTF("exit");// Exit the server
-					    outStreamWk.flush();
+							outStream.flush();
+							outStreamWk.writeUTF("exit");// Exit the server
+							outStreamWk.flush();
 							break;
 						}
-         	}
-	     	}
-	    }
-      catch (Exception e)
-      {
-          e.printStackTrace();
-      }
-    }
+					}
+
+				}
+				
+			}catch(EOFException eo) {
+				System.out.print("EOF ConnectFourView server disconnected");
+			} 
+			catch(SocketException so) {
+				System.out.print("Socket ConnectFourView server disconnected");
+			} 
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
