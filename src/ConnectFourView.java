@@ -259,6 +259,7 @@ public class ConnectFourView {
 
 				if (checkWin(button)) {
 					updateView();
+					
 					// for (int i = boardSize - 1; i >= 0; i--) {
 					// 	for (int j = boardSize - 1; j >= 0; j--) {
 					// 		if (board.get(i, j) == 0) {
@@ -296,6 +297,8 @@ public class ConnectFourView {
 		if (board.getWinner() > 0) {
 			System.out.println(board.getLastClient() == 1 ? "Red win" : "Blue win");
 			gameStatus.setIcon(board.getLastClient() == 1 ? rWin : bWin);
+			
+			
 		}
 		for (int i = 0; i < boardSize; i++) {
 			for (int j = 0; j < boardSize; j++) {
@@ -331,7 +334,11 @@ public class ConnectFourView {
 			try {
 				outStreamWk.writeUTF("reset");
 				startChannel();
-			} catch (IOException e) {
+				
+			} catch (NullPointerException np) {
+				System.out.print("Game reset: No server");
+			}
+			catch (IOException e) {
 				e.printStackTrace();
 			} catch (Exception e) {
 				e.printStackTrace();
