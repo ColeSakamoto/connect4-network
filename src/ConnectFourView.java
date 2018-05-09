@@ -289,6 +289,7 @@ public class ConnectFourView {
 			AI ai = new AI(board);
 			int col = ai.bestMove();
 			int row = board.addChip(col);
+			
 			//System.out.println("AI move: row "+ row + ", col: " + col);
 			updateView();
 		}
@@ -300,7 +301,7 @@ public class ConnectFourView {
 		if (board.getWinner() > 0) {
 			System.out.println(board.getLastClient() == 1 ? "Red win" : "Blue win");
 			gameStatus.setIcon(board.getLastClient() == 1 ? rWin : bWin);
-			
+			win = true;
 			
 		}
 		for (int i = 0; i < boardSize; i++) {
@@ -440,3 +441,4 @@ public class ConnectFourView {
 		}
 	}
 }
+
