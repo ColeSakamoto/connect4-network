@@ -201,6 +201,9 @@ public class ConnectFourView {
 			startCheck = true; //For starting win check in worker thread
 			// For debugging purposes print selected location
 			System.out.println("Selected Row: " + row + " Col: " + col);
+			if (win == true) {
+				return;
+			}
 
 			////////////For sending position data to server
 
@@ -336,7 +339,7 @@ public class ConnectFourView {
 				startChannel();
 				
 			} catch (NullPointerException np) {
-				System.out.print("Game reset: No server");
+				System.out.println("Game reset: No server");
 			}
 			catch (IOException e) {
 				e.printStackTrace();
